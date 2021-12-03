@@ -6,7 +6,7 @@ from lib import rule34
 
 group = CommandWrapper()
 
-PREFIX = "im!"
+PREFIX = "m!"
 
 
 @group.command()
