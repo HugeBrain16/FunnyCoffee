@@ -76,7 +76,7 @@ def mention_to_id(mention: str) -> int:
 def getin(prompt: str, empty_message: str = None):
     res = input(prompt)
 
-    while res:
+    while not res:
         if isinstance(empty_message, str):
             print(empty_message)
         res = input(prompt)
