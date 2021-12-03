@@ -65,7 +65,7 @@ class Rule34(Command):
             if img:
                 await self.message.respond(img[0])
             else:
-                await self.message.respond("Nothing found ¯\_(ツ)_/¯")
+                await self.message.respond("Nothing found ¯\\_(ツ)_/¯")
         else:
             await self.message.respond(
                 "You can't do it here buddy. this isn't NSFW channel!"
