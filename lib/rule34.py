@@ -2,7 +2,6 @@
 
 import requests
 import random
-from bs4 import BeautifulSoup as BSoup
 from typing import List
 
 BASE_URL = "https://rule34.xxx/index.php"
