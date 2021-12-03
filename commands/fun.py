@@ -1,6 +1,6 @@
 import random
+import hikari
 import requests
-import discord
 import cmdtools
 from cmdtools.ext.command import Command, CommandWrapper
 
@@ -96,7 +96,7 @@ class Magic8Ball(Command):
         ]
 
         answer = random.choice(answers)
-        embed = discord.Embed(title=answer["text"], color=answer["color"])
+        embed = hikari.Embed(title=answer["text"], color=answer["color"])
         embed.set_thumbnail(
             "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Magic8ball.jpg/220px-Magic8ball.jpg"
         )
