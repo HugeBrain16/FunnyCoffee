@@ -28,6 +28,7 @@ class FunnySnake(hikari.GatewayBot):
         logging.info(f"Starting FunnyCoffee version v{meta.Version(0)}...")
 
     async def on_started(self, event: hikari.StartedEvent):
+        self.commands = []
         loadcmdmsg = []
         for command in utils.get_commands():
             cmd = utils.load_command(command)
@@ -38,6 +39,7 @@ class FunnySnake(hikari.GatewayBot):
                 warnmsg += "\nTo load the command module, please define PREFIX variable in global scope."
                 logging.warning(warnmsg)
             else:
+                self.commands.append(cmd)
                 loadcmdmsg.append(f"  - {command}")
         loadcmdmsg.append(f"{len(loadcmdmsg)} Command module(s) found:")
         logging.info("\n".join(loadcmdmsg[::-1]))
@@ -78,25 +80,22 @@ class FunnySnake(hikari.GatewayBot):
                 else:
                     await message.respond("No.")
             else:
-                for command in utils.get_commands():
-                    cmdobj = utils.load_command(command)
+                for cmd in self.commands:
+                    cmdobj = cmdtools.AioCmd(message.content, prefix=cmd.PREFIX)
 
-                    if cmdobj and hasattr(cmdobj, "PREFIX"):
-                        cmd = cmdtools.AioCmd(message.content, prefix=cmdobj.PREFIX)
-
-                        if cmd.name:
-                            try:
-                                await cmdobj.group.run(
-                                    cmd, attrs={"message": message, "client": self}
-                                )
-                            except RunnerError:
-                                guild: hikari.RESTGuild = await self.rest.fetch_guild(
-                                    message.guild_id
-                                )
-                                warnmsg = f"User has executed an unknown command: {message.content}"
-                                warnmsg += f"\n  User:\n    Username: {message.author.username}#{message.author.discriminator}\n    ID: {message.author.id}"
-                                warnmsg += f"\n  User's guild:\n    ID: {guild.id}\n    Name: {guild.name}"
-                                logging.warning(warnmsg)
+                    if cmdobj.name:
+                        try:
+                            await cmd.group.run(
+                                cmdobj, attrs={"message": message, "client": self}
+                            )
+                        except RunnerError:
+                            guild: hikari.RESTGuild = await self.rest.fetch_guild(
+                                message.guild_id
+                            )
+                            warnmsg = f"User has executed an unknown command: {message.content}"
+                            warnmsg += f"\n  User:\n    Username: {message.author.username}#{message.author.discriminator}\n    ID: {message.author.id}"
+                            warnmsg += f"\n  User's guild:\n    ID: {guild.id}\n    Name: {guild.name}"
+                            logging.warning(warnmsg)
 
 
 def main():
