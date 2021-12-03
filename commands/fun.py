@@ -101,6 +101,6 @@ class Magic8Ball(Command):
             "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Magic8ball.jpg/220px-Magic8ball.jpg"
         )
         embed.set_author(name=_question)
-        embed.set_footer(text=f"Asked by {self.message.author.display_name}")
+        embed.set_footer(text=f"Asked by {self.message.author.nickname or self.message.author.username}")
 
         await self.message.respond(embed=embed)
