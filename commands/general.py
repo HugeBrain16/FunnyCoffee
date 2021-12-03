@@ -185,7 +185,7 @@ class Info(Command):
         embed.set_thumbnail(self.client.get_me().avatar_url)
 
         embed.description = ""
-        embed.description += "Source Code: Not Available, for now..." + "\n"
+        embed.description += "https://github.com/HugeBrain16/FunnyCoffee" + "\n"
         embed.description += (
             f"Latency: **{self.client.heartbeat_latency * 1000:.2f}ms**" + "\n"
         )
