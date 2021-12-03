@@ -1,0 +1,4 @@
+hikari
+requests
+beautifulsoup4
+cmdtools-py
