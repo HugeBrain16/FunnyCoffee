@@ -47,7 +47,7 @@ class Rule34(Command):
 
     async def rule34(self, *query_):
         query = " ".join(query_)
-
+        sendtip = False
         channel = await self.client.rest.fetch_channel(self.message.channel_id)
 
         if channel.is_nsfw:
@@ -55,14 +55,16 @@ class Rule34(Command):
                 chance_to_get_tip = random.randint(1, 5)
 
                 if chance_to_get_tip == random.randint(1, 5):
-                    await self.message.respond(
-                        f"**Tip:** _You can provide search query to find an image you want to search._\n  Example: _{PREFIX}{self.name} femboy cock_"
-                    )
+                    sendtip = True
                 img = rule34.get_random()
             else:
                 img = rule34.get_random_from_query(query)
 
             if img:
+                if sendtip is True:
+                    await self.message.respond(
+                        f"**Tip:** _You can provide search query to find an image you want to search._\n  Example: _{PREFIX}{self.name} femboy cock_"
+                    )
                 await self.message.respond(img[0])
             else:
                 await self.message.respond("Nothing found ¯\\_(ツ)_/¯")
