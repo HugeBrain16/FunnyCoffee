@@ -12,7 +12,7 @@ def get_latest_post_id() -> int:
         BASE_URL, params={"page": "dapi", "q": "index", "s": "post", "json": 1}
     )
 
-    if req.status_code == 200:
+    if req.text.strip():
         return req.json()[0]["id"]
 
 
@@ -41,7 +41,7 @@ def get_random(limit: int = 1) -> List[int]:
             BASE_URL,
             params={"page": "dapi", "q": "index", "s": "post", "id": id, "json": 1},
         )
-        if req.status_code == 200:
+        if req.text.strip():
             result.append(req.json()[0]["file_url"])
 
     return result
