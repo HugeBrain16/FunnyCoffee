@@ -151,7 +151,7 @@ class Anime:
             embed.set_image(self.get_cover_image(ImageSize.LARGE))
 
         # fields
-        embed.add_field(name="Total Episodes", value=self.episodes)
+        embed.add_field(name="Total Episodes", value=self.episodes or "-")
         embed.add_field(
             name="Alternative Titles",
             value=f"Japanese: **{self.title_ja}**\nEnglish: **{self.title}**",
