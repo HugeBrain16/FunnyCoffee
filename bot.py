@@ -24,10 +24,10 @@ class FunnySnake(hikari.GatewayBot):
         self.subscribe(hikari.StartingEvent, self.on_starting)
 
     async def on_starting(self, event: hikari.StartingEvent):
-        self.start_time = datetime.datetime.utcnow()
         logging.info(f"Starting FunnyCoffee version v{meta.Version(0)}...")
 
     async def on_started(self, event: hikari.StartedEvent):
+        self.start_time = datetime.datetime.utcnow()
         self.commands = []
         loadcmdmsg = []
         for command in utils.get_commands():
