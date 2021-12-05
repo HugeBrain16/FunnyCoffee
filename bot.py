@@ -3,6 +3,7 @@ import re
 import random
 import datetime
 import logging
+import asyncio
 
 import hikari
 import cmdtools
@@ -27,6 +28,7 @@ class FunnySnake(hikari.GatewayBot):
         logging.info(f"Starting FunnyCoffee version v{meta.Version(0)}...")
 
     async def on_started(self, event: hikari.StartedEvent):
+        self.loop = asyncio.get_event_loop()
         self.start_time = datetime.datetime.utcnow()
         self.commands = []
         loadcmdmsg = []
