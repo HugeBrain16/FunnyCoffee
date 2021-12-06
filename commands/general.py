@@ -35,10 +35,10 @@ class Avatar(Command):
     def help(self):
         return "Show user's avatar"
 
-    async def avatar(self, mention=None):
-        if mention:
+    async def avatar(self):
+        if self.message.mentions.user_ids:
             user = await self.client.rest.fetch_member(
-                self.message.guild_id, utils.mention_to_id(mention)
+                self.message.guild_id, self.message.mentions.user_ids[0]
             )
 
             if user:
