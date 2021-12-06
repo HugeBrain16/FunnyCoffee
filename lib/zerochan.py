@@ -2,11 +2,9 @@
 
 import requests
 import random
-import string
 from bs4 import BeautifulSoup as BSoup
 from typing import List
 
-CHAR = string.printable.strip()
 BASE_URL = "https://www.zerochan.net"
 
 
@@ -22,7 +20,7 @@ def get_total_posts() -> int:
         total = ""
 
         for c in images_total.text:
-            if c in CHAR[:10]:
+            if c.isnumeric():
                 total += c
 
     return int(total) if total else 0
