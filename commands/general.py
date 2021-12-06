@@ -97,31 +97,6 @@ class Help(Command):
 
 
 @group.command()
-class HostInfo(Command):
-    def __init__(self):
-        super().__init__(name="hostinfo")
-
-    @property
-    def help(self):
-        return "Get bot host info."
-
-    async def hostinfo(self):
-        req = requests.get("https://api.ipify.org", params={"format": "json"})
-
-        if req.status_code == 200:
-            req = requests.get("http://ip-api.com/json/" + req.json()["ip"])
-
-            if req.status_code == 200:
-                if req.json()["status"] == "success":
-                    embed = hikari.Embed(title="Host Info", color=0x00FF00)
-                    embed.description = f"Country: **{req.json()['country']}**\nCity: **{req.json()['city']}**\nTimezone: **{req.json()['timezone']}**"
-
-                    await self.message.respond(embed=embed)
-                else:
-                    await self.message.respond("Failed to get host info!")
-
-
-@group.command()
 class CmdDetail(Command):
     __aliases__ = ["searchcmd", "findcmd"]
 
