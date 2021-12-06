@@ -1,19 +1,20 @@
 import os
 import importlib
 from cmdtools.ext.command import CommandWrapper
-from typing import List
+from typing import Iterable, List
 
 
 class ConfigEnv:
-    def __init__(self, filepath: str):
+    def __init__(self, filepath: str, comment_prefix: Iterable[str] = ("#", ";")):
         self.filepath = filepath
+        self.comment_prefix = comment_prefix
 
         cfg = open(filepath, "r").readlines()
 
         for line in cfg:
             line = line.strip()
 
-            if line:
+            if line and not line.startswith(self.comment_prefix):
                 key, value = self.parse_option(line)
 
                 if key and value:
