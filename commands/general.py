@@ -182,6 +182,10 @@ class UserInfo(Command):
     def __init__(self):
         super().__init__(name="userinfo")
 
+    @property
+    def help(self):
+        return "Get user details"
+
     def get_detail(self, member: hikari.Member):
         embed = hikari.Embed()
         embed.title = member.nickname or member.username
