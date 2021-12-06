@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import random
 import datetime
 import logging
@@ -15,6 +16,8 @@ from lib import meta
 
 class FunnySnake(hikari.GatewayBot):
     def __init__(self, token: str):
+        self.config = json.load(open("config.json", "r", encoding="UTF-8"))
+
         super().__init__(
             token=token,
         )
@@ -91,13 +94,23 @@ class FunnySnake(hikari.GatewayBot):
                                 cmdobj, attrs={"message": message, "client": self}
                             )
                         except RunnerError:
-                            guild: hikari.RESTGuild = await self.rest.fetch_guild(
-                                message.guild_id
-                            )
-                            warnmsg = f"User has executed an unknown command: {message.content}"
-                            warnmsg += f"\n  User:\n    Username: {message.author.username}#{message.author.discriminator}\n    ID: {message.author.id}"
-                            warnmsg += f"\n  User's guild:\n    ID: {guild.id}\n    Name: {guild.name}"
-                            logging.warning(warnmsg)
+                            if self.config["logging"]["unknownCommand"]:
+                                guild: hikari.RESTGuild = await self.rest.fetch_guild(
+                                    message.guild_id
+                                )
+                                warnmsg = f"User has executed an unknown command: {message.content}"
+                                warnmsg += f"\n  User:\n    Username: {message.author.username}#{message.author.discriminator}\n    ID: {message.author.id}"
+                                warnmsg += f"\n  User's guild:\n    ID: {guild.id}\n    Name: {guild.name}"
+                                logging.warning(warnmsg)
+                        else:
+                            if self.config["logging"]["executedCommand"]:
+                                guild: hikari.RESTGuild = await self.rest.fetch_guild(
+                                    message.guild_id
+                                )
+                                logmsg = f"User has executed a command: {message.content}"
+                                logmsg += f"\n  User:\n    Username: {message.author.username}#{message.author.discriminator}\n"
+                                logmsg += f"\n  User's guild:\n    ID: {guild.id}\n    Name: {guild.name}"
+                                logging.info(logmsg)
 
 
 def main():
