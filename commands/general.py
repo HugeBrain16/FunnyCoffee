@@ -170,3 +170,58 @@ class Info(Command):
         )
 
         await self.message.respond(embed=embed)
+
+
+@group.command()
+class UserInfo(Command):
+    __aliases__ = [
+        "uinfo",
+        "user",
+    ]
+
+    def __init__(self):
+        super().__init__(name="userinfo")
+
+    def get_detail(self, member: hikari.Member):
+        embed = hikari.Embed()
+        embed.title = member.nickname or member.username
+        embed.color = member.accent_color
+        embed.description = ""
+
+        embed.set_author(name="User info")
+        embed.set_thumbnail(member.guild_avatar_url or member.avatar_url)
+        if member.banner_url:
+            embed.set_image(member.banner_url)
+
+        if member.is_bot:
+            embed.description += "\n[BOT]"
+        embed.description += f"\nUsername: **{member.username}#{member.discriminator}**"
+        embed.description += f"\nID: **{member.id}**"
+        embed.description += f"\nDate created: **{member.created_at.strftime('%d %B, %Y - %H:%M:%S')}**"
+        embed.description += f"\nJoined at: **{member.joined_at.strftime('%d %B, %Y - %H:%M:%S')}**"
+        if member.premium_since:
+            embed.description += f"\nBoosting since: **{member.premium_since.strftime('%d %B, %Y - %H:%M:%S')}**"
+
+        return embed
+
+    async def userinfo(self):
+        if self.message.mentions.user_ids:
+            member = await self.client.rest.fetch_member(
+                self.message.guild_id, self.message.mentions.user_ids[0]
+            )
+
+            if member:
+                embed = self.get_detail(member)
+                await self.message.respond(embed=embed)
+        else:
+            member = await self.client.rest.fetch_member(
+                self.message.guild_id, self.message.author.id
+            )
+            embed = self.get_detail(member)
+            await self.message.respond(embed=embed)
+
+    async def error_userinfo(self, error):
+        if isinstance(error, hikari.NotFoundError):
+            await self.message.respond("User not found!")
+        else:
+            raise error
