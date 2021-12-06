@@ -131,7 +131,7 @@ class CmdDetail(Command):
                     details += f"Category: **{command.capitalize()}**" + "\n"
                     if hasattr(mod, "PREFIX"):
                         if isinstance(mod.PREFIX, str):
-                            details += f"Prefix: **{mod.prefix}**" + "\n"
+                            details += f"Prefix: **{mod.PREFIX}**" + "\n"
 
                     if cobj.aliases:
                         details += f"Aliases: {', '.join(cobj.aliases)}" + "\n"
