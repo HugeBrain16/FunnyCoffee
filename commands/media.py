@@ -3,6 +3,7 @@ from cmdtools.ext.command import Command, CommandWrapper
 
 from lib import zerochan
 from lib import rule34
+from lib import kitsu
 
 group = CommandWrapper()
 
@@ -74,4 +75,29 @@ class Rule34(Command):
             )
             
     async def error_rule34(self, error):
+        raise error
+
+@group.command()
+class Anime(Command):
+    def __init__(self):
+        super().__init__(name="anime")
+
+    @property
+    def help(self):
+        return "Search for anime"
+
+    async def anime(self, *query_):
+        query = ""
+        if query_:
+            query = " ".join(query_)
+            anime = kitsu.search_anime(query, limit=1)
+        else:
+            anime = kitsu.random_anime(limit=1)
+
+        if anime:
+            await self.message.respond(embed=anime[0].discord_embed(cover=True))
+        else:
+            await self.message.respond(f"Not found: '{query}'")
+
+    async def error_anime(self, error: Exception):
         raise error
