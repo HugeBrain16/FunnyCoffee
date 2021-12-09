@@ -13,5 +13,4 @@ for example in `.env`:
 
 ```ini
 TOKEN=asdasdasidjoiajsdoij23-0iasidjoiajsd
-TENOR_TOKEN=aiosjdoi12903i0a9sdoiajsodijasoidj
 ```
