@@ -122,11 +122,6 @@ def main():
         os.environ["TOKEN"] = utils.getin(
             "Enter Discord bot token: ", "Token is required to start the bot!"
         )
-    if not os.getenv("TENOR_TOKEN"):
-        print("Tenor token is required!")
-        os.environ["TENOR_TOKEN"] = utils.getin(
-            "Enter Tenor token: ", "Token is required!"
-        )
 
     bot = FunnySnake(os.getenv("TOKEN"))
     opts = {}
