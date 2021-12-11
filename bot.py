@@ -14,6 +14,12 @@ from lib import utils
 from lib import meta
 
 
+if os.name != "nt":
+    import uvloop
+
+    uvloop.install()
+
+
 class FunnySnake(hikari.GatewayBot):
     def __init__(self, token: str):
         self.config = json.load(open("config.json", "r", encoding="UTF-8"))
