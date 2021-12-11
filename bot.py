@@ -33,6 +33,34 @@ class FunnyCoffee(hikari.GatewayBot):
         self.subscribe(hikari.StartedEvent, self.on_started)
         self.subscribe(hikari.StartingEvent, self.on_starting)
 
+    async def update_presence_task(self):
+        while self.is_alive:
+            presences = []
+
+            presences.append(
+                self.update_presence(
+                    status=hikari.Status.IDLE,
+                    idle_since=datetime.datetime.now(),
+                    activity=hikari.Activity(
+                        name="the hit game Among Us", type=hikari.ActivityType.PLAYING
+                    ),
+                )
+            )
+
+            general_cmd = utils.load_command("general")
+            presences.append(
+                self.update_presence(
+                    status=hikari.Status.IDLE,
+                    idle_since=datetime.datetime.now(),
+                    activity=hikari.Activity(
+                        name=f"{general_cmd.PREFIX}help" if hasattr(general_cmd, "PREFIX") else "your mom", type=hikari.ActivityType.WATCHING
+                    ),
+                )
+            )
+            for presence in presences:
+                await presence
+                await asyncio.sleep(60 * 5)
+
     async def on_starting(self, event: hikari.StartingEvent):
         logging.info(f"Starting FunnyCoffee version v{meta.Version(0)}...")
 
@@ -55,13 +83,7 @@ class FunnyCoffee(hikari.GatewayBot):
         loadcmdmsg.append(f"{len(loadcmdmsg)} Command module(s) found:")
         logging.info("\n".join(loadcmdmsg[::-1]))
 
-        await self.update_presence(
-            status=hikari.Status.IDLE,
-            idle_since=datetime.datetime.now(),
-            activity=hikari.Activity(
-                name="the hit game Among Us", type=hikari.ActivityType.PLAYING
-            ),
-        )
+        self.loop.create_task(self.update_presence_task())
 
     async def on_message(self, event: hikari.GuildMessageCreateEvent):
         if event.is_human:
