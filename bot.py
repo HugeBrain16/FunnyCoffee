@@ -67,29 +67,10 @@ class FunnyCoffee(hikari.GatewayBot):
         if event.is_human:
             message = event.message
 
-            # hard coding garbage
             if re.search(r"funny\s*coffee", message.content, flags=re.IGNORECASE):
                 await message.respond(random.choice(["hello", "yo", "hi", "hey"]))
             elif message.content.strip() == f"<@!{self.get_me().id}>":
                 await message.respond(random.choice(["hello", "yo", "hi", "hey"]))
-
-            if re.match(
-                r"^funny\s*coffee\s*prefix\s*\??$", message.content, flags=re.IGNORECASE
-            ):
-                await message.respond("Ask again nicely.")
-            elif re.match(
-                r"^funny\s*coffee\s*\,?\s*prefix\s*\,?\s*ple?a?se?.?$",
-                message.content,
-                flags=re.IGNORECASE,
-            ):
-                gcom = utils.load_command("general")
-
-                if hasattr(gcom, "PREFIX"):
-                    await message.respond(
-                        f"my prefix is **{gcom.PREFIX}**, try **{gcom}help**"
-                    )
-                else:
-                    await message.respond("No.")
             else:
                 for cmd in self.commands:
                     cmdobj = cmdtools.AioCmd(message.content, prefix=cmd.PREFIX)
