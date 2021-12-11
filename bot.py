@@ -135,8 +135,8 @@ def main():
     bot = FunnyCoffee(os.getenv("TOKEN"))
     opts = {}
 
-    # if meta.Version.DEV is not meta.DevType.RELEASE:
-    #     opts.update({"asyncio_debug": True, "coroutine_tracking_depth": 20})
+    if bot.config['debug']:
+        opts.update({"asyncio_debug": True, "coroutine_tracking_depth": 20})
 
     bot.run(**opts)
 

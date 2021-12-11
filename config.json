@@ -1,4 +1,5 @@
 {
+    "debug": true,
     "logging": {
         "executedCommand": false,
         "unknownCommand": true
