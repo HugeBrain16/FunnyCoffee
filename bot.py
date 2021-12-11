@@ -20,7 +20,7 @@ if os.name != "nt":
     uvloop.install()
 
 
-class FunnySnake(hikari.GatewayBot):
+class FunnyCoffee(hikari.GatewayBot):
     def __init__(self, token: str):
         self.config = json.load(open("config.json", "r", encoding="UTF-8"))
 
@@ -129,7 +129,7 @@ def main():
             "Enter Discord bot token: ", "Token is required to start the bot!"
         )
 
-    bot = FunnySnake(os.getenv("TOKEN"))
+    bot = FunnyCoffee(os.getenv("TOKEN"))
     opts = {}
 
     # if meta.Version.DEV is not meta.DevType.RELEASE:
