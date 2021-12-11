@@ -2,7 +2,9 @@ import hikari
 import requests
 import cmdtools
 import datetime
+import random
 
+from typing import List
 from cmdtools.ext.command import Command, CommandWrapper
 from lib import utils
 from lib import meta
@@ -229,3 +231,59 @@ class UserInfo(Command):
             await self.message.respond("User not found!")
         else:
             raise error
+
+
+@group.command()
+class GuildInfo(Command):
+    __aliases__ = [
+        "serverinfo",
+    ]
+
+    def __init__(self):
+        super().__init__(name="guildinfo")
+
+    @property
+    def help(self):
+        return "Get guild/server info"
+
+    async def guildinfo(self):
+        guild = await self.client.rest.fetch_guild(self.message.guild_id)
+
+        if guild:
+            embed = hikari.Embed()
+            embed.title = guild.name
+            embed.color = hikari.Color.from_rgb(*[random.randint(0, 255) for _ in range(3)])
+            embed.description = ""
+
+            embed.set_author(name="Guild info")
+            if guild.icon_url:
+                embed.set_thumbnail(guild.icon_url)
+            if guild.banner_url:
+                embed.set_image(guild.banner_url)
+
+            embed.description += f"\nID: **{guild.id}**"
+            embed.description += f"\nDate created: **{guild.created_at.strftime('%d %B, %Y - %H:%M:%S')}**"
+            embed.description += f"\nRole count: **{len(guild.roles):,}**"
+            embed.description += f"\nEmoji count: **{len(guild.get_emojis())}**"
+
+            channels_field_value = ""
+            channels_field_value += f"\nChannel count: **{len(guild.get_channels()):,}**"
+            embed.add_field(name="Channels", value=channels_field_value, inline=False)
+
+            members_field_value = ""
+            members_field_value += f"\nMember count: **{guild.approximate_member_count:,}**"
+            members_field_value += f"\nOnline member count: **{guild.approximate_active_member_count:,}**"
+            members_field_value += f"\nMax members: **{guild.max_members:,}**"
+            embed.add_field(name="Members", value=members_field_value, inline=False)
+
+            owner = await guild.fetch_owner()
+            owner_field_value = ""
+            owner_field_value += f"\nUsername: **{owner.user.username}#{owner.user.discriminator}**"
+            if owner.nickname:
+                owner_field_value += f"\nNickname: **{owner.nickname}**"
+            embed.add_field(name="Owner", value=owner_field_value, inline=False)
+
+            await self.message.respond(embed=embed)
+
+    async def error_guildinfo(self, error):
+        raise error
