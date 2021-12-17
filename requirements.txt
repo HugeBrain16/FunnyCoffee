@@ -2,3 +2,4 @@ hikari
 requests
 beautifulsoup4
 cmdtools-py
+Flask>=2.0.0
