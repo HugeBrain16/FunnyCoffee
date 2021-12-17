@@ -3,5 +3,12 @@
     "logging": {
         "executedCommand": false,
         "unknownCommand": true
+    },
+    "web": {
+        "admin_password": "change_me"
+    },
+    "webapp": {
+        "host": "0.0.0.0",
+        "port": 5555
     }
 }
