@@ -142,7 +142,7 @@ class FunnyCoffee(hikari.GatewayBot):
 
             if flask.request.method == "POST":
                 if flask.request.form.get("adminPassword"):
-                    self.config["web"]["adminPassword"] = flask.request.form.get(
+                    self.config["web"]["admin_password"] = flask.request.form.get(
                         "adminPassword"
                     )
 
