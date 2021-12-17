@@ -5,13 +5,17 @@ import random
 import datetime
 import logging
 import asyncio
+import functools
+import string
 
 import hikari
 import cmdtools
+import flask
 from cmdtools.ext.command import RunnerError
 
 from lib import utils
 from lib import meta
+from lib import webutil
 
 
 if os.name != "nt":
@@ -23,6 +27,16 @@ if os.name != "nt":
 class FunnyCoffee(hikari.GatewayBot):
     def __init__(self, token: str):
         self.config = json.load(open("config.json", "r", encoding="UTF-8"))
+        self.webapp = flask.Flask(
+            "FunnyCoffee",
+            static_folder="./assets",
+            template_folder="./assets",
+        )
+        self.webapp.permanent_session_lifetime = datetime.timedelta(days=1)
+        self.webapp.secret_key = "".join(
+            [random.choice(string.printable.strip()) for _ in range(16)]
+        )
+        self.webapp.logger = logging.getLogger("hikari.bot")
 
         super().__init__(
             token=token,
@@ -53,7 +67,10 @@ class FunnyCoffee(hikari.GatewayBot):
                     status=hikari.Status.IDLE,
                     idle_since=datetime.datetime.now(),
                     activity=hikari.Activity(
-                        name=f"{general_cmd.PREFIX}help" if hasattr(general_cmd, "PREFIX") else "your mom", type=hikari.ActivityType.WATCHING
+                        name=f"{general_cmd.PREFIX}help"
+                        if hasattr(general_cmd, "PREFIX")
+                        else "your mom",
+                        type=hikari.ActivityType.WATCHING,
                     ),
                 )
             )
@@ -82,6 +99,111 @@ class FunnyCoffee(hikari.GatewayBot):
                 loadcmdmsg.append(f"  - {command}")
         loadcmdmsg.append(f"{len(loadcmdmsg)} Command module(s) found:")
         logging.info("\n".join(loadcmdmsg[::-1]))
+
+        config = {"load_dotenv": False, "use_reloader": False}
+        config.update(self.config["webapp"])
+
+        if self.config["debug"]:
+            config.update({"debug": True})
+
+        @self.webapp.route("/")
+        @self.webapp.route("/index")
+        def index():
+            return flask.render_template(
+                "index.html", avatar_url=self.get_me().avatar_url
+            )
+
+        @self.webapp.route("/login", methods=["GET", "POST"])
+        def login():
+            if flask.session.get("admin"):
+                return flask.redirect(flask.url_for("dashboard"))
+
+            if flask.request.method == "POST":
+                password = flask.request.form.get("password")
+
+                if not password:
+                    return flask.render_template("login.html", empty_password=True)
+
+                if password == self.config["web"]["admin_password"]:
+                    flask.session["admin"] = True
+                    flask.session.permanent = True
+                    return flask.redirect(flask.url_for("dashboard"))
+                else:
+                    return flask.render_template("login.html", wrong_password=True)
+
+            return flask.render_template("login.html")
+
+        @self.webapp.route("/dashboard", methods=["GET", "POST"])
+        def dashboard():
+            config_updated = False
+
+            if not flask.session.get("admin"):
+                return flask.redirect(flask.url_for("login"))
+
+            if flask.request.method == "POST":
+                if flask.request.form.get("adminPassword"):
+                    self.config["web"]["adminPassword"] = flask.request.form.get(
+                        "adminPassword"
+                    )
+
+                if "executedCommand" in flask.request.form:
+                    self.config["logging"]["executedCommand"] = True
+                else:
+                    self.config["logging"]["executedCommand"] = False
+
+                if "unknownCommand" in flask.request.form:
+                    self.config["logging"]["unknownCommand"] = True
+                else:
+                    self.config["logging"]["unknownCommand"] = False
+
+                if "writeToFile" in flask.request.form:
+                    with open("config.json", "w") as file:
+                        file.write(utils.pjson(self.config))
+
+                config_updated = True
+
+            return flask.render_template(
+                "dashboard.html",
+                avatar_url=self.get_me().avatar_url,
+                admin_password=self.config["web"]["admin_password"],
+                executedCommand=self.config["logging"]["executedCommand"],
+                unknownCommand=self.config["logging"]["unknownCommand"],
+                configUpdated=config_updated,
+            )
+
+        @self.webapp.route("/api")
+        def api_index():
+            urls = {"commands": "/api/commands"}
+
+            return webutil.jsonify(urls)
+
+        @self.webapp.route("/api/commands")
+        def api_commands():
+            commands = {
+                "category_count": len(self.commands),
+                "command_count": sum(
+                    [len(command.group.commands) for command in self.commands]
+                ),
+            }
+            commands.update({"categories": []})
+            for command in self.commands:
+                cmddat = {}
+                cmddat.update({"category": command.__name__.rsplit(".", 1)[-1]})
+                cmddat.update({"command_count": len(command.group.commands)})
+                cmddat.update({"prefix": getattr(command, "PREFIX", None)})
+                cmddat.update({"commands": []})
+                for cmd in command.group.commands:
+                    cmdobj = {}
+                    cmdobj.update({"name": cmd.name})
+                    cmdobj.update({"aliases": cmd.aliases})
+                    cmdobj.update({"help": getattr(cmd, "help", None)})
+                    cmddat["commands"].append(cmdobj)
+                commands["categories"].append(cmddat)
+
+            return webutil.jsonify(commands)
+
+        run_webapp = functools.partial(self.webapp.run, **config)
+        self.loop.run_in_executor(None, run_webapp)
 
         self.loop.create_task(self.update_presence_task())
 
@@ -116,7 +238,9 @@ class FunnyCoffee(hikari.GatewayBot):
                                 guild: hikari.RESTGuild = await self.rest.fetch_guild(
                                     message.guild_id
                                 )
-                                logmsg = f"User has executed a command: {message.content}"
+                                logmsg = (
+                                    f"User has executed a command: {message.content}"
+                                )
                                 logmsg += f"\n  User:\n    Username: {message.author.username}#{message.author.discriminator}\n"
                                 logmsg += f"\n  User's guild:\n    ID: {guild.id}\n    Name: {guild.name}"
                                 logging.info(logmsg)
@@ -135,7 +259,7 @@ def main():
     bot = FunnyCoffee(os.getenv("TOKEN"))
     opts = {}
 
-    if bot.config['debug']:
+    if bot.config["debug"]:
         opts.update({"asyncio_debug": True, "coroutine_tracking_depth": 20})
 
     bot.run(**opts)
