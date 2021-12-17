@@ -1,5 +1,6 @@
 import os
 import importlib
+import json
 from cmdtools.ext.command import CommandWrapper
 from typing import Iterable, List
 
@@ -83,3 +84,12 @@ def getin(prompt: str, empty_message: str = None):
         res = input(prompt)
 
     return res
+
+
+def pjson(data: dict):
+    return json.dumps(
+        data,
+        indent=4,
+        sort_keys=4,
+        separators=(",", ": "),
+    )
