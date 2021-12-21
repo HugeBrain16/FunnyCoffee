@@ -11,6 +11,7 @@ import string
 import hikari
 import cmdtools
 import flask
+import psutil
 from cmdtools.ext.command import RunnerError
 
 from lib import utils
@@ -192,9 +193,24 @@ class FunnyCoffee(hikari.GatewayBot):
 
         @self.webapp.route("/api")
         def api_index():
-            urls = {"commands": "/api/commands"}
+            urls = {"commands": "/api/commands", "host_machine": "/api/host_machine"}
 
             return webutil.jsonify(urls)
+
+        @self.webapp.route("/api/host_machine")
+        def api_host_machine():
+            proc = psutil.Process(os.getpid())
+            mem = proc.memory_info()
+            data = {
+                "memory": {
+                    "used": mem.vms // (1024 ** 2),
+                },
+                "cpu": {
+                    "percent": proc.cpu_percent(0.1),
+                },
+            }
+
+            return webutil.jsonify(data)
 
         @self.webapp.route("/api/commands")
         def api_commands():
