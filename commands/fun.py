@@ -116,7 +116,9 @@ class Magic8Ball(Command):
             "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Magic8ball.jpg/220px-Magic8ball.jpg"
         )
         embed.set_author(name=_question)
-        member = await self.client.rest.fetch_member(self.message.guild_id, self.message.author.id)
+        member = await self.client.rest.fetch_member(
+            self.message.guild_id, self.message.author.id
+        )
         embed.set_footer(text=f"Asked by {member.nickname or member.username}")
 
         await self.message.respond(embed=embed)

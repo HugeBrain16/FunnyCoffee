@@ -209,8 +209,12 @@ class UserInfo(Command):
             embed.description += "\n[BOT]"
         embed.description += f"\nUsername: **{member.username}#{member.discriminator}**"
         embed.description += f"\nID: **{member.id}**"
-        embed.description += f"\nDate created: **{member.created_at.strftime('%d %B, %Y - %H:%M:%S')}**"
-        embed.description += f"\nJoined at: **{member.joined_at.strftime('%d %B, %Y - %H:%M:%S')}**"
+        embed.description += (
+            f"\nDate created: **{member.created_at.strftime('%d %B, %Y - %H:%M:%S')}**"
+        )
+        embed.description += (
+            f"\nJoined at: **{member.joined_at.strftime('%d %B, %Y - %H:%M:%S')}**"
+        )
         if member.premium_since:
             embed.description += f"\nBoosting since: **{member.premium_since.strftime('%d %B, %Y - %H:%M:%S')}**"
 
@@ -259,7 +263,9 @@ class GuildInfo(Command):
         if guild:
             embed = hikari.Embed()
             embed.title = guild.name
-            embed.color = hikari.Color.from_rgb(*[random.randint(0, 255) for _ in range(3)])
+            embed.color = hikari.Color.from_rgb(
+                *[random.randint(0, 255) for _ in range(3)]
+            )
             embed.description = ""
 
             embed.set_author(name="Guild info")
@@ -274,18 +280,26 @@ class GuildInfo(Command):
             embed.description += f"\nEmoji count: **{len(guild.get_emojis())}**"
 
             channels_field_value = ""
-            channels_field_value += f"\nChannel count: **{len(guild.get_channels()):,}**"
+            channels_field_value += (
+                f"\nChannel count: **{len(guild.get_channels()):,}**"
+            )
             embed.add_field(name="Channels", value=channels_field_value, inline=False)
 
             members_field_value = ""
-            members_field_value += f"\nMember count: **{guild.approximate_member_count:,}**"
-            members_field_value += f"\nOnline member count: **{guild.approximate_active_member_count:,}**"
+            members_field_value += (
+                f"\nMember count: **{guild.approximate_member_count:,}**"
+            )
+            members_field_value += (
+                f"\nOnline member count: **{guild.approximate_active_member_count:,}**"
+            )
             members_field_value += f"\nMax members: **{guild.max_members:,}**"
             embed.add_field(name="Members", value=members_field_value, inline=False)
 
             owner = await guild.fetch_owner()
             owner_field_value = ""
-            owner_field_value += f"\nUsername: **{owner.user.username}#{owner.user.discriminator}**"
+            owner_field_value += (
+                f"\nUsername: **{owner.user.username}#{owner.user.discriminator}**"
+            )
             if owner.nickname:
                 owner_field_value += f"\nNickname: **{owner.nickname}**"
             embed.add_field(name="Owner", value=owner_field_value, inline=False)

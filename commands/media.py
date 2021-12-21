@@ -75,9 +75,10 @@ class Rule34(Command):
             await self.message.respond(
                 "You can't do it here buddy. this isn't NSFW channel!"
             )
-            
+
     async def error_rule34(self, error):
         raise error
+
 
 @group.command()
 class Anime(Command):
