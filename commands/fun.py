@@ -12,7 +12,12 @@ PREFIX = "f+"
 @group.command()
 class Dice(Command):
     def __init__(self):
+        self._help = "Roll a dice"
         super().__init__(name="dice")
+
+    @property
+    def help(self):
+        return self._help
 
     async def dice(self):
         dice = random.randint(1, 6)
@@ -23,7 +28,12 @@ class Dice(Command):
 @group.command()
 class Joke(Command):
     def __init__(self):
+        self._help = "Funny jokes"
         super().__init__(name="joke")
+
+    @property
+    def help(self):
+        return self._help
 
     async def joke(self):
         retries = 0
@@ -50,7 +60,12 @@ class Magic8Ball(Command):
     __aliases__ = ["magic8ball", "m8ball"]
 
     def __init__(self):
+        self._help = "a fortune-telling ball"
         super().__init__(name="8ball")
+
+    @property
+    def help(self):
+        return self._help
 
     @property
     def callback(self):

@@ -16,11 +16,12 @@ PREFIX = "fc!"
 @group.command()
 class Ping(Command):
     def __init__(self):
+        self._help = "get latency"
         super().__init__(name="ping")
 
     @property
     def help(self):
-        return "get latency"
+        return self._help
 
     async def ping(self):
         await self.message.respond(
@@ -31,11 +32,12 @@ class Ping(Command):
 @group.command()
 class Avatar(Command):
     def __init__(self):
+        self._help = "Show user's avatar"
         super().__init__(name="avatar")
 
     @property
     def help(self):
-        return "Show user's avatar"
+        return self._help
 
     async def avatar(self):
         if self.message.mentions.user_ids:
@@ -71,17 +73,18 @@ class Avatar(Command):
 @group.command()
 class Help(Command):
     def __init__(self):
+        self._help = "Show help"
         super().__init__(name="help")
 
     @property
     def callback(self):
-        return self._help
+        return self.__help
 
     @property
     def help(self):
-        return "Show this"
+        return self._help
 
-    async def _help(self):
+    async def __help(self):
         embed = hikari.Embed(title="Help", color=0xFFFFFF)
         embed.description = "Showing all available commands"
 
@@ -103,11 +106,12 @@ class CmdDetail(Command):
     __aliases__ = ["searchcmd", "findcmd"]
 
     def __init__(self):
+        self._help = "Search for commands and the details"
         super().__init__(name="cmd")
 
     @property
     def help(self):
-        return "Search for commands and the details"
+        return self._help
 
     async def error_cmd(self, error):
         if isinstance(error, cmdtools.MissingRequiredArgument):
@@ -150,11 +154,12 @@ class Info(Command):
     ]
 
     def __init__(self):
+        self._help = "Get bot details"
         super().__init__(name="info")
 
     @property
     def help(self):
-        return "Get bot details"
+        return self._help
 
     async def info(self):
         embed = hikari.Embed(title="FunnyCoffee", color=0x00FFFF)
@@ -182,11 +187,12 @@ class UserInfo(Command):
     ]
 
     def __init__(self):
+        self._help = "Get user details"
         super().__init__(name="userinfo")
 
     @property
     def help(self):
-        return "Get user details"
+        return self._help
 
     def get_detail(self, member: hikari.Member):
         embed = hikari.Embed()
@@ -240,11 +246,12 @@ class GuildInfo(Command):
     ]
 
     def __init__(self):
+        self._help = "Get guild/server info"
         super().__init__(name="guildinfo")
 
     @property
     def help(self):
-        return "Get guild/server info"
+        return self._help
 
     async def guildinfo(self):
         guild = await self.client.rest.fetch_guild(self.message.guild_id)

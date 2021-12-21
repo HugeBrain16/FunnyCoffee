@@ -17,11 +17,12 @@ class Zerochan(Command):
     ]
 
     def __init__(self):
+        self._help = "Get a random anime picture."
         super().__init__(name="zerochan")
 
     @property
     def help(self):
-        return "Get a random anime picture."
+        return self._help
 
     async def zerochan(self):
         img = zerochan.get_random()
@@ -40,11 +41,12 @@ class Rule34(Command):
     ]
 
     def __init__(self):
+        self._help = "interesting random image."
         super().__init__(name="rule34")
 
     @property
     def help(self):
-        return "interesting random image."
+        return self._help
 
     async def rule34(self, *query_):
         query = " ".join(query_)
@@ -80,11 +82,12 @@ class Rule34(Command):
 @group.command()
 class Anime(Command):
     def __init__(self):
+        self._help = "Search for anime"
         super().__init__(name="anime")
 
     @property
     def help(self):
-        return "Search for anime"
+        return self._help
 
     async def anime(self, *query_):
         query = ""
