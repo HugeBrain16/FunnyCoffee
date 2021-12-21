@@ -114,6 +114,13 @@ class FunnyCoffee(hikari.GatewayBot):
                 "index.html", avatar_url=self.get_me().avatar_url
             )
 
+        @self.webapp.errorhandler(404)
+        def page_not_found(error):
+            return (
+                '<html><head><style>body {background-image: url("https://c.tenor.com/UoPZv7kireAAAAAd/trollface-horror.gif"); background-repeat: repeat; background-color: #000000}</style></head><body></body></html>',
+                404,
+            )
+
         @self.webapp.route("/login", methods=["GET", "POST"])
         def login():
             if flask.session.get("admin"):
