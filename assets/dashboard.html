@@ -71,7 +71,27 @@
                         </label>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary">Update config</button>
+                <h3>Command Categories</h3>
+                <p class="text-warning"><b>NOTE:</b> Changes made only applies for current session.</p>
+                {% for command in commands %}
+                    {% set categoryName = command.__name__.split(".", 1)[-1] %}
+                    <h4>{{ categoryName.capitalize().replace('_', ' ') }}</h4>
+                    <div class="mb-3 mt-3">
+                        {% set prefixInputElement = categoryName ~ '_prefix' %}
+                        <label for="{{ prefixInputElement }}" class="form-label">Prefix</label>
+                        <input class="form-control" name="{{ prefixInputElement }}" id="{{ prefixInputElement }}" placeholder="enter prefix" value="{{ command.PREFIX }}">
+                    </div>
+                    <h5>Commands</h5>
+                    {% for cmd in command.group.commands %}
+                        <h6><b>{{ cmd.name }}</b></h6>
+                        <div class="mb-3 mt-3">
+                            {% set cmdhelpInputElement = cmd.name ~ '_help' %}
+                            <label for="{{ cmdhelpInputElement }}" class="form-label">Help/Description</label>
+                            <input class="form-control" name="{{ cmdhelpInputElement }}" id="{{ cmdhelpInputElement }}" placeholder="enter help/description text" value="{{ cmd|attr('help') }}">
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+                <button type="submit" class="btn btn-primary mt-3">Update config</button>
             </form>
         </div>
     </body>

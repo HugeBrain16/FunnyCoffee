@@ -160,6 +160,24 @@ class FunnyCoffee(hikari.GatewayBot):
                     with open("config.json", "w") as file:
                         file.write(utils.pjson(self.config))
 
+                for command_index, command in enumerate(self.commands):
+                    category_name = command.__name__.split(".", 1)[-1]
+                    prefix_input_element = category_name + "_prefix"
+                    self.commands[command_index].PREFIX = (
+                        flask.request.form[prefix_input_element].strip()
+                        or command.PREFIX
+                    )
+                    for cmd_index, cmd in enumerate(command.group.commands):
+                        current_command = self.commands[command_index]
+                        cmd_help_input_element = cmd.name + "_help"
+                        helptext = flask.request.form[cmd_help_input_element]
+
+                        setattr(
+                            current_command.group.commands[cmd_index],
+                            "_help",
+                            helptext.strip(),
+                        )
+
                 config_updated = True
 
             return flask.render_template(
@@ -169,6 +187,7 @@ class FunnyCoffee(hikari.GatewayBot):
                 executedCommand=self.config["logging"]["executedCommand"],
                 unknownCommand=self.config["logging"]["unknownCommand"],
                 configUpdated=config_updated,
+                commands=self.commands,
             )
 
         @self.webapp.route("/api")
