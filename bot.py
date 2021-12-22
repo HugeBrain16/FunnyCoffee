@@ -154,15 +154,11 @@ class FunnyCoffee(hikari.GatewayBot):
                         "adminPassword"
                     )
 
-                if "executedCommand" in flask.request.form:
-                    self.config["logging"]["executedCommand"] = True
-                else:
-                    self.config["logging"]["executedCommand"] = False
-
-                if "unknownCommand" in flask.request.form:
-                    self.config["logging"]["unknownCommand"] = True
-                else:
-                    self.config["logging"]["unknownCommand"] = False
+                for logconfkey in self.config["logging"]:
+                    if logconfkey in flask.request.form:
+                        self.config["logging"][logconfkey] = True
+                    else:
+                        self.config["logging"][logconfkey] = False
 
                 if "writeToFile" in flask.request.form:
                     with open("config.json", "w") as file:
@@ -192,8 +188,7 @@ class FunnyCoffee(hikari.GatewayBot):
                 "dashboard.html",
                 avatar_url=self.get_me().avatar_url,
                 admin_password=self.config["web"]["admin_password"],
-                executedCommand=self.config["logging"]["executedCommand"],
-                unknownCommand=self.config["logging"]["unknownCommand"],
+                loggingConfig=self.config["logging"],
                 configUpdated=config_updated,
                 commands=self.commands,
             )

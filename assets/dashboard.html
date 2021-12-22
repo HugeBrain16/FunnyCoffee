@@ -52,26 +52,18 @@
                 </div>
                 <h3>Logging</h3>
                 <div class="mb-5 mt-3">
-                    <div class="form-check mt-2">
-                        {% if executedCommand == True %}
-                            <input type="checkbox" class="form-check-input" value="" name="executedCommand" id="executedCommand" checked>
-                        {% else %}
-                            <input type="checkbox" class="form-check-input" value="" name="executedCommand" id="executedCommand">
-                        {% endif %}
-                        <label for="executedCommand" class="form-check-label">
-                            executedCommand
-                        </label>
-                    </div>
-                    <div class="form-check mt-2">
-                        {% if unknownCommand == True %}
-                            <input type="checkbox" class="form-check-input" value="" name="unknownCommand" id="unknownCommand" checked>
-                        {% else %}
-                            <input type="checkbox" class="form-check-input" value="" name="unknownCommand" id="unknownCommand">
-                        {% endif %}
-                        <label for="unknownCommand" class="form-check-label">
-                            unknownCommand
-                        </label>
-                    </div>
+                    {% for configKey, configValue in loggingConfig.items() %}
+                        <div class="form-check mt-2">
+                            {% if configValue == True %}
+                                <input type="checkbox" class="form-check-input" value="" name="{{ configKey }}" id="{{ configKey }}" checked>
+                            {% else %}
+                                <input type="checkbox" class="form-check-input" value="" name="{{ configKey }}" id="{{ configkey }}">
+                            {% endif %}
+                            <label for="{{ configKey }}" class="form-check-label">
+                                {{ configKey }}
+                            </label>
+                        </div>
+                    {% endfor %}
                 </div>
                 <h3>Options</h3>
                 <div class="mb-5 mt-3">
