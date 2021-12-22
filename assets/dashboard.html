@@ -89,8 +89,12 @@
                         <h6><b>{{ cmd.name }}</b></h6>
                         <div class="mb-3 mt-3">
                             {% set cmdhelpInputElement = cmd.name ~ '_help' %}
+                            {% set cmdAliasesInputElement = cmd.name ~ '_aliases' %}
                             <label for="{{ cmdhelpInputElement }}" class="form-label">Help/Description</label>
                             <input class="form-control" name="{{ cmdhelpInputElement }}" id="{{ cmdhelpInputElement }}" placeholder="enter help/description text" value="{{ cmd|attr('help') }}">
+                            <label for="{{ cmdAliasesInputElement }}" class="form-label">Aliases</label>
+                            <input class="form-control" name="{{ cmdAliasesInputElement }}" id="{{ cmdAliasesInputElement }}" placeholder="enter aliases" value="{{ ', '.join(cmd.aliases) }}">
+                            <small class="form-text text-muted">Separate by comma. ex: showimg, showpic</small>
                         </div>
                     {% endfor %}
                 {% endfor %}

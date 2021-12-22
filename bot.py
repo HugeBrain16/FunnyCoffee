@@ -174,12 +174,24 @@ class FunnyCoffee(hikari.GatewayBot):
                     for cmd_index, cmd in enumerate(command.group.commands):
                         current_command = self.commands[command_index]
                         cmd_help_input_element = cmd.name + "_help"
+                        cmd_aliases_input_element = cmd.name + "_aliases"
                         helptext = flask.request.form[cmd_help_input_element]
+                        aliases = [
+                            alias.strip()
+                            for alias in flask.request.form[
+                                cmd_aliases_input_element
+                            ].split(",")
+                        ]
 
                         setattr(
                             current_command.group.commands[cmd_index],
                             "__help__",
                             helptext.strip(),
+                        )
+                        setattr(
+                            current_command.group.commands[cmd_index],
+                            "__aliases__",
+                            aliases,
                         )
 
                 config_updated = True
