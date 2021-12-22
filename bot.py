@@ -182,7 +182,7 @@ class FunnyCoffee(hikari.GatewayBot):
 
                         setattr(
                             current_command.group.commands[cmd_index],
-                            "_help",
+                            "__help__",
                             helptext.strip(),
                         )
 

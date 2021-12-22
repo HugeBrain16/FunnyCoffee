@@ -4,6 +4,7 @@ from cmdtools.ext.command import Command, CommandWrapper
 from lib import zerochan
 from lib import rule34
 from lib import kitsu
+from lib import command
 
 group = CommandWrapper()
 
@@ -11,18 +12,14 @@ PREFIX = "m!"
 
 
 @group.command()
-class Zerochan(Command):
+class Zerochan(command.BaseCommand):
     __aliases__ = [
         "zchan",
     ]
+    __help__ = "Get a random anime picture."
 
     def __init__(self):
-        self._help = "Get a random anime picture."
         super().__init__(name="zerochan")
-
-    @property
-    def help(self):
-        return self._help
 
     async def zerochan(self):
         img = zerochan.get_random()
@@ -35,18 +32,14 @@ class Zerochan(Command):
 
 
 @group.command()
-class Rule34(Command):
+class Rule34(command.BaseCommand):
     __aliases__ = [
         "r34",
     ]
+    __help__ = "interesting random image."
 
     def __init__(self):
-        self._help = "interesting random image."
         super().__init__(name="rule34")
-
-    @property
-    def help(self):
-        return self._help
 
     async def rule34(self, *query_):
         query = " ".join(query_)
@@ -81,14 +74,11 @@ class Rule34(Command):
 
 
 @group.command()
-class Anime(Command):
-    def __init__(self):
-        self._help = "Search for anime"
-        super().__init__(name="anime")
+class Anime(command.BaseCommand):
+    __help__ = "Search for anime"
 
-    @property
-    def help(self):
-        return self._help
+    def __init__(self):
+        super().__init__(name="anime")
 
     async def anime(self, *query_):
         query = ""

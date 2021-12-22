@@ -2,22 +2,20 @@ import random
 import hikari
 import requests
 import cmdtools
-from cmdtools.ext.command import Command, CommandWrapper
+from cmdtools.ext.command import CommandWrapper
 
+from lib import command
 
 group = CommandWrapper()
 PREFIX = "f+"
 
 
 @group.command()
-class Dice(Command):
-    def __init__(self):
-        self._help = "Roll a dice"
-        super().__init__(name="dice")
+class Dice(command.BaseCommand):
+    __help__ = "Roll a dice"
 
-    @property
-    def help(self):
-        return self._help
+    def __init__(self):
+        super().__init__(name="dice")
 
     async def dice(self):
         dice = random.randint(1, 6)
@@ -26,14 +24,11 @@ class Dice(Command):
 
 
 @group.command()
-class Joke(Command):
-    def __init__(self):
-        self._help = "Funny jokes"
-        super().__init__(name="joke")
+class Joke(command.BaseCommand):
+    __help__ = "Funny jokes"
 
-    @property
-    def help(self):
-        return self._help
+    def __init__(self):
+        super().__init__(name="joke")
 
     async def joke(self):
         retries = 0
@@ -56,16 +51,12 @@ class Joke(Command):
 
 
 @group.command()
-class Magic8Ball(Command):
+class Magic8Ball(command.BaseCommand):
     __aliases__ = ["magic8ball", "m8ball"]
+    __help__ = "a fortune-telling ball"
 
     def __init__(self):
-        self._help = "a fortune-telling ball"
         super().__init__(name="8ball")
-
-    @property
-    def help(self):
-        return self._help
 
     @property
     def callback(self):

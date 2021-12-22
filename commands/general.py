@@ -8,20 +8,18 @@ from typing import List
 from cmdtools.ext.command import Command, CommandWrapper
 from lib import utils
 from lib import meta
+from lib import command
 
 group = CommandWrapper()
 PREFIX = "fc!"
 
 
 @group.command()
-class Ping(Command):
-    def __init__(self):
-        self._help = "get latency"
-        super().__init__(name="ping")
+class Ping(command.BaseCommand):
+    __help__ = "get latency"
 
-    @property
-    def help(self):
-        return self._help
+    def __init__(self):
+        super().__init__(name="ping")
 
     async def ping(self):
         await self.message.respond(
@@ -30,14 +28,11 @@ class Ping(Command):
 
 
 @group.command()
-class Avatar(Command):
-    def __init__(self):
-        self._help = "Show user's avatar"
-        super().__init__(name="avatar")
+class Avatar(command.BaseCommand):
+    __help__ = "Show user's avatar"
 
-    @property
-    def help(self):
-        return self._help
+    def __init__(self):
+        super().__init__(name="avatar")
 
     async def avatar(self):
         if self.message.mentions.user_ids:
@@ -71,18 +66,15 @@ class Avatar(Command):
 
 
 @group.command()
-class Help(Command):
+class Help(command.BaseCommand):
+    __help__ = "Show help"
+
     def __init__(self):
-        self._help = "Show help"
         super().__init__(name="help")
 
     @property
     def callback(self):
         return self.__help
-
-    @property
-    def help(self):
-        return self._help
 
     async def __help(self):
         embed = hikari.Embed(title="Help", color=0xFFFFFF)
@@ -102,16 +94,12 @@ class Help(Command):
 
 
 @group.command()
-class CmdDetail(Command):
+class CmdDetail(command.BaseCommand):
     __aliases__ = ["searchcmd", "findcmd"]
+    __help__ = "Search for commands and the details"
 
     def __init__(self):
-        self._help = "Search for commands and the details"
         super().__init__(name="cmd")
-
-    @property
-    def help(self):
-        return self._help
 
     async def error_cmd(self, error):
         if isinstance(error, cmdtools.MissingRequiredArgument):
@@ -148,18 +136,14 @@ class CmdDetail(Command):
 
 
 @group.command()
-class Info(Command):
+class Info(command.BaseCommand):
     __aliases__ = [
         "botinfo",
     ]
+    __help__ = "Get bot details"
 
     def __init__(self):
-        self._help = "Get bot details"
         super().__init__(name="info")
-
-    @property
-    def help(self):
-        return self._help
 
     async def info(self):
         embed = hikari.Embed(title="FunnyCoffee", color=0x00FFFF)
@@ -180,19 +164,15 @@ class Info(Command):
 
 
 @group.command()
-class UserInfo(Command):
+class UserInfo(command.BaseCommand):
     __aliases__ = [
         "uinfo",
         "user",
     ]
+    __help__ = "Get user details"
 
     def __init__(self):
-        self._help = "Get user details"
         super().__init__(name="userinfo")
-
-    @property
-    def help(self):
-        return self._help
 
     def get_detail(self, member: hikari.Member):
         embed = hikari.Embed()
@@ -244,18 +224,14 @@ class UserInfo(Command):
 
 
 @group.command()
-class GuildInfo(Command):
+class GuildInfo(command.BaseCommand):
     __aliases__ = [
         "serverinfo",
     ]
+    __help__ = "Get guild/server info"
 
     def __init__(self):
-        self._help = "Get guild/server info"
         super().__init__(name="guildinfo")
-
-    @property
-    def help(self):
-        return self._help
 
     async def guildinfo(self):
         guild = await self.client.rest.fetch_guild(self.message.guild_id)
