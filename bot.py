@@ -20,9 +20,13 @@ from lib import webutil
 
 
 if os.name != "nt":
-    import uvloop
+    try:
+        import uvloop
 
-    uvloop.install()
+        print("uvloop found!, installing uvloop...")
+        uvloop.install()
+    except ImportError:
+        pass
 
 
 class FunnyCoffee(hikari.GatewayBot):
