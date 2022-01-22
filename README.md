@@ -5,6 +5,15 @@ basically batchest v2 cuz most codes are recycled from [BatChest](https://github
 
 ## How to run
 
+### Download the sources
+
+Download from [releases](https://github.com/HugeBrain16/FunnyCoffee/releases) or  
+clone the latest commit
+
+```sh
+git clone https://github.com/HugeBrain16/FunnyCoffee
+```
+
 ### Install dependencies
 
 #### Using pip
