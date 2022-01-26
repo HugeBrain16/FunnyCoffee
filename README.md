@@ -11,7 +11,7 @@ Download from [releases](https://github.com/HugeBrain16/FunnyCoffee/releases) or
 clone the latest commit
 
 ```sh
-git clone https://github.com/HugeBrain16/FunnyCoffee
+git clone -b master https://github.com/HugeBrain16/FunnyCoffee
 ```
 
 ### Install dependencies
