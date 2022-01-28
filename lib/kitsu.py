@@ -166,7 +166,7 @@ class Anime:
         )
         embed.add_field(
             name="Year",
-            value=datetime.datetime.strptime(
+            value="-" if not self.data["attributes"]["startDate"] else datetime.datetime.strptime(
                 self.data["attributes"]["startDate"], "%Y-%m-%d"
             ).year,
         )
