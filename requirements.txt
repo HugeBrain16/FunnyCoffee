@@ -4,3 +4,4 @@ beautifulsoup4
 cmdtools-py==2.4.9
 Flask>=2.0.0
 psutil
+lavasnek_rs
