@@ -3,6 +3,7 @@ import importlib
 import json
 from cmdtools.ext.command import CommandWrapper
 from typing import Iterable, List
+from urllib import parse as urlparse
 
 
 class ConfigEnv:
@@ -93,3 +94,10 @@ def pjson(data: dict):
         sort_keys=4,
         separators=(",", ": "),
     )
+
+
+def get_youtube_thumb(url: str):
+    query = urlparse.parse_qs(urlparse.urlsplit(url).query)
+
+    if query.get("v"):
+        return f"http://i3.ytimg.com/vi/{query.get('v')[0]}/hqdefault.jpg"
