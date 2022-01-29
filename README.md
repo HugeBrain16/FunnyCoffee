@@ -54,7 +54,8 @@ Download Java 13 [here](https://adoptopenjdk.net/releases.html?variant=openjdk13
 3). Edit the **application.yml** and paste the content of this [example config](https://github.com/freyacodes/Lavalink/blob/master/LavalinkServer/application.yml.example)  
 
 **NOTE:** if you changed the password in the **application.yml** file, you have to edit your `.env` file, or your environment variables.  
-set a new key named **LAVALINK_PASSWORD** and set the value to your lavalink server password, ex: `LAVALINK_PASSWORD=youshallnotpass`
+set a new key named **LAVALINK_PASSWORD** and set the value to your lavalink server password, ex: `LAVALINK_PASSWORD=youshallnotpass`  
+(for hostname it's `LAVALINK_HOSTNAME`, default is `127.0.0.1`)
 
 4). Run Lavalink server:
 
