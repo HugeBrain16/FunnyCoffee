@@ -11,7 +11,7 @@ Download from [releases](https://github.com/HugeBrain16/FunnyCoffee/releases) or
 clone the latest commit
 
 ```sh
-git clone https://github.com/HugeBrain16/FunnyCoffee
+git clone -b master https://github.com/HugeBrain16/FunnyCoffee
 ```
 
 ### Install dependencies
@@ -42,6 +42,25 @@ for example in `.env`:
 
 ```ini
 TOKEN=asdasdasidjoiajsdoij23-0iasidjoiajsd
+```
+
+### Setup Lavalink server
+
+make sure you have Java 13 or later installed.  
+Download Java 13 [here](https://adoptopenjdk.net/releases.html?variant=openjdk13&jvmVariant=hotspot) if you don't have it installed.  
+
+1). Download **Lavalink.jar** file [here](https://github.com/freyacodes/Lavalink/releases/latest)  
+2). Create new configuration file with the name **application.yml**, make sure to put the application config file alongside the **Lavalink.jar** file.  
+3). Edit the **application.yml** and paste the content of this [example config](https://github.com/freyacodes/Lavalink/blob/master/LavalinkServer/application.yml.example)  
+
+**NOTE:** if you changed the password in the **application.yml** file, you have to edit your `.env` file, or your environment variables.  
+set a new key named **LAVALINK_PASSWORD** and set the value to your lavalink server password, ex: `LAVALINK_PASSWORD=youshallnotpass`  
+(for hostname it's `LAVALINK_HOSTNAME`, default is `127.0.0.1`)
+
+4). Run Lavalink server:
+
+```sh
+java -jar Lavalink.jar
 ```
 
 ### Run bot script
