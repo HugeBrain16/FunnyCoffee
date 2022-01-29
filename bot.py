@@ -12,6 +12,7 @@ import hikari
 import cmdtools
 import flask
 import psutil
+import lavasnek_rs
 from cmdtools.ext.command import RunnerError
 
 from lib import utils
@@ -29,6 +30,65 @@ if os.name != "nt":
         pass
 
 
+class LavalinkEventHandler:
+    def __init__(self, client: hikari.GatewayBot):
+        self.client = client
+
+    async def track_start(
+        self, lavalink: lavasnek_rs.Lavalink, event: lavasnek_rs.TrackStart
+    ):
+        node = await lavalink.get_guild_node(event.guild_id)
+
+        if node:
+            if node.now_playing:
+                track = node.now_playing.track
+
+                embed = hikari.Embed()
+                embed.color = 0xFFFFFF
+                embed.url = track.info.uri
+                embed.title = track.info.title
+
+                embed.set_author(name="Now playing...")
+                if utils.get_youtube_thumb(track.info.uri):
+                    embed.set_thumbnail(utils.get_youtube_thumb(track.info.uri))
+                if node.now_playing.requester:
+                    member = await self.client.rest.fetch_member(
+                        event.guild_id, node.now_playing.requester
+                    )
+
+                    if member:
+                        embed.set_footer(
+                            text=f"Requested by {member.nickname or member.username}"
+                        )
+
+                node_data = node.get_data()
+
+                if isinstance(node_data, dict):
+                    await self.client.rest.create_message(
+                        node_data["request_channel_id"], embed=embed
+                    )
+
+    async def track_finish(
+        self, lavalink: lavasnek_rs.Lavalink, event: lavasnek_rs.TrackFinish
+    ):
+        logging.info(f"Track finished on guild: {event.guild_id}")
+
+    async def track_exception(
+        self, lavalink: lavasnek_rs.Lavalink, event: lavasnek_rs.TrackException
+    ):
+        logging.warning(f"Track caught an exception on guild: {event.guild_id}")
+
+        skip = await lavalink.skip(event.guild_id)
+        node = await lavalink.get_guild_node(event.guild_id)
+
+        if not node:
+            return
+
+        if skip:
+            if not node.queue and not node.now_playing:
+                await lavalink.stop(event.guild_id)
+
+
 class FunnyCoffee(hikari.GatewayBot):
     def __init__(self, token: str):
         self.config = json.load(open("config.json", "r", encoding="UTF-8"))
@@ -42,6 +102,7 @@ class FunnyCoffee(hikari.GatewayBot):
             [random.choice(string.printable.strip()) for _ in range(16)]
         )
         self.webapp.logger = logging.getLogger("hikari.bot")
+        self.lavalink = lavasnek_rs.Lavalink
 
         super().__init__(
             token=token,
@@ -51,6 +112,7 @@ class FunnyCoffee(hikari.GatewayBot):
         self.subscribe(hikari.GuildMessageCreateEvent, self.on_message)
         self.subscribe(hikari.StartedEvent, self.on_started)
         self.subscribe(hikari.StartingEvent, self.on_starting)
+        self.subscribe(hikari.ShardReadyEvent, self.on_ready)
 
     async def update_presence_task(self):
         while self.is_alive:
@@ -82,6 +144,17 @@ class FunnyCoffee(hikari.GatewayBot):
             for presence in presences:
                 await presence
                 await asyncio.sleep(60 * 5)
+
+    async def on_ready(self, event: hikari.ShardReadyEvent):
+        lavalbuilder = lavasnek_rs.LavalinkBuilder(event.my_user.id, os.getenv("TOKEN"))
+        lavalbuilder = lavalbuilder.set_host(
+            os.getenv("LAVALINK_HOSTNAME", "127.0.0.1")
+        )
+        if os.getenv("LAVALINK_PASSWORD"):
+            lavalbuilder = lavalbuilder.set_password(os.getenv("LAVALINK_PASSWORD"))
+
+        lavaclient = await lavalbuilder.build(LavalinkEventHandler(self))
+        self.lavalink = lavaclient
 
     async def on_starting(self, event: hikari.StartingEvent):
         logging.info(f"Starting FunnyCoffee version v{meta.Version(0)}...")
