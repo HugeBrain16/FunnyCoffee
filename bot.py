@@ -11,7 +11,6 @@ import string
 import hikari
 import cmdtools
 import flask
-from numpy import isin
 import psutil
 import lavasnek_rs
 from cmdtools.ext.command import RunnerError
