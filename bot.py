@@ -11,6 +11,7 @@ import string
 import hikari
 import cmdtools
 import flask
+from numpy import isin
 import psutil
 import lavasnek_rs
 from cmdtools.ext.command import RunnerError
@@ -150,6 +151,18 @@ class FunnyCoffee(hikari.GatewayBot):
         lavalbuilder = lavalbuilder.set_host(
             os.getenv("LAVALINK_HOSTNAME", "127.0.0.1")
         )
+        lavalport = 2333
+        _lavalport = os.getenv("LAVALINK_PORT", lavalport)
+
+        if isinstance(_lavalport, str):
+            if _lavalport.strip().isdigit():
+                lavalport = int(_lavalport)
+            else:
+                logging.warn(
+                    f"Environment 'LAVALINK_PORT' with value of '{_lavalport}' is not a digit string, falling back to default value: {lavalport}"
+                )
+
+        lavalbuilder = lavalbuilder.set_port(lavalport)
         if os.getenv("LAVALINK_PASSWORD"):
             lavalbuilder = lavalbuilder.set_password(os.getenv("LAVALINK_PASSWORD"))
 
