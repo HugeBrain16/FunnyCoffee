@@ -5,7 +5,7 @@ basically batchest v2 cuz most codes are recycled from [BatChest](https://github
 
 ## How to run
 
-you can execute this [install script](https://gist.github.com/HugeBrain16/b791b0b18c8824d0ed50e35f6849cce6) to setup FunnyCoffee,  
+you can execute this [install script](https://raw.githubusercontent.com/HugeBrain16/FunnyCoffee/scripts/install.sh) to setup FunnyCoffee,  
 **[Rust](https://www.rust-lang.org/tools/install)** is required for building [lavasnek_rs](https://github.com/vicky5124/lavasnek_rs).
 
 otherwise, you can follow these steps.
