@@ -241,7 +241,7 @@ class Queue(command.BaseCommand):
                     queuestr.append(trackstr)
 
                     if tracknum == 10:
-                        queuestr.append(f"{len(tracks) - 10}+")
+                        queuestr.append(f"{len(node.queue) - 10}+")
                         break
 
                 embed = hikari.Embed(title="Queue")
