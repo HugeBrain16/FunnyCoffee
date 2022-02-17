@@ -238,11 +238,11 @@ class Queue(command.BaseCommand):
                     if tracknum == 1:
                         trackstr += " (Now playing)"
 
-                    queuestr.append(trackstr)
-
                     if tracknum > 10:
                         queuestr.append(f"{len(node.queue) - 10}+")
                         break
+
+                    queuestr.append(trackstr)
 
                 embed = hikari.Embed(title="Queue")
                 embed.color = 0xFFFFFF
