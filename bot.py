@@ -18,6 +18,7 @@ from cmdtools.ext.command import RunnerError
 from lib import utils
 from lib import meta
 from lib import webutil
+from lib import cache
 
 
 if os.name != "nt":
@@ -103,6 +104,7 @@ class FunnyCoffee(hikari.GatewayBot):
         )
         self.webapp.logger = logging.getLogger("hikari.bot")
         self.lavalink = lavasnek_rs.Lavalink
+        self.caches = cache.MemCacheManager()
 
         super().__init__(
             token=token,
@@ -344,6 +346,8 @@ class FunnyCoffee(hikari.GatewayBot):
         self.loop.run_in_executor(None, run_webapp)
 
         self.loop.create_task(self.update_presence_task())
+        self.loop.create_task(self.caches.update())
+        self.loop.create_task(cache.update_cachedir(".cache"))
 
     async def on_message(self, event: hikari.GuildMessageCreateEvent):
         if event.is_human:
