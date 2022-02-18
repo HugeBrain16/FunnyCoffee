@@ -2,7 +2,10 @@
 
 import requests
 import random
+import json
 from typing import List
+
+from lib import cache
 
 BASE_URL = "https://rule34.xxx/index.php"
 
@@ -33,9 +36,22 @@ def get_random_from_query(query: str, limit: int = 1) -> List[int]:
 
 def get_random(limit: int = 1) -> List[int]:
     result = []
+    config = json.load(open("config.json", "r", encoding="UTF-8"))
+
+    if config["enableCaching"]:
+        cdat = cache.get(".cache", "rule34_LatestPostId")
+
+        if cdat:
+            lpostid = cdat.data
+        else:
+            lpostid = get_latest_post_id()
+            cdat = cache.Cache("rule34_LatestPostId", lpostid)
+            cache.store(".cache", cdat)
+    else:
+        lpostid = get_latest_post_id()
 
     while len(result) < limit:
-        id = random.randint(1, get_latest_post_id())
+        id = random.randint(1, lpostid)
 
         req = requests.get(
             BASE_URL,

@@ -1,5 +1,6 @@
 {
     "debug": false,
+    "enableCaching": true,
     "logging": {
         "executedCommand": false,
         "unknownCommand": true
