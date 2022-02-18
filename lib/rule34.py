@@ -5,6 +5,8 @@ import random
 import json
 from typing import List
 
+from lib import cache
+
 BASE_URL = "https://rule34.xxx/index.php"
 
 
