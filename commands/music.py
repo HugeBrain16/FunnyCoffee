@@ -153,8 +153,8 @@ class Skip(command.BaseCommand):
         if not skip or not node:
             await self.message.respond("Nothing to skip.")
         else:
-            if not node.queue and node.now_playing:
-                await self.lavalink.stop(self.message.guild_id)
+            if not node.queue:
+                await self.client.lavalink.stop(self.message.guild_id)
 
             await self.message.add_reaction("⏭")
 
