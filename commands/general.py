@@ -53,7 +53,9 @@ class Avatar(command.BaseCommand):
             author = await self.client.rest.fetch_member(
                 self.message.guild_id, self.message.author.id
             )
-            embed = hikari.Embed(title=f"{author.nickname or author.username}'s Avatar", color=0xFFFFFF)
+            embed = hikari.Embed(
+                title=f"{author.nickname or author.username}'s Avatar", color=0xFFFFFF
+            )
             embed.set_image(author.avatar_url)
 
             await self.message.respond(embed=embed)

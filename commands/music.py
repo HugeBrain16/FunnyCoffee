@@ -229,7 +229,9 @@ class Queue(command.BaseCommand):
                     tracknum = idx + 1
 
                     if self.client.config["enableCaching"]:
-                        username = self.client.caches.get(f"{track_queue.requester}_username")
+                        username = self.client.caches.get(
+                            f"{track_queue.requester}_username"
+                        )
 
                         if username:
                             username = username.data
@@ -238,7 +240,9 @@ class Queue(command.BaseCommand):
                                 message.guild_id, track_queue.requester
                             )
                             username = f"{member.username}#{member.discriminator}"
-                            cdat = cache.Cache(f"{track_queue.requester}_username", username)
+                            cdat = cache.Cache(
+                                f"{track_queue.requester}_username", username
+                            )
                             self.client.caches.store(cdat)
                     else:
                         member = await client.rest.fetch_member(

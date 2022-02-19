@@ -316,7 +316,7 @@ class FunnyCoffee(hikari.GatewayBot):
             mem = proc.memory_info()
             data = {
                 "memory": {
-                    "used": mem.vms // (1024 ** 2),
+                    "used": mem.vms // (1024**2),
                 },
                 "cpu": {
                     "percent": proc.cpu_percent(0.1),
