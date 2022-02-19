@@ -11,15 +11,14 @@ from typing import Any, Optional, List
 class Cache:
     name: str
     data: Any
-    remove_in: int = attrs.field(default=10)
-    date_created: datetime.datetime = attrs.field(init=False)
+    expired_after: int = attrs.field(default=10)
+    expiration: datetime.datetime = attrs.field(init=False)
 
-    def __attrs_post_init__(self):
-        self.remove_in = datetime.timedelta(minutes=self.remove_in)
-
-    @date_created.default
-    def _date_created(self):
-        return datetime.datetime.utcnow()
+    @expiration.default
+    def _expiration(self):
+        return datetime.datetime.utcnow() + datetime.timedelta(
+            minutes=self.expired_after
+        )
 
 
 def ensure_cachedir(cachedir: str):
@@ -80,9 +79,7 @@ async def update_cachedir(cachedir: str):
             cache = get(cachedir, cdir)
 
             if cache:
-                ctime = datetime.datetime.utcnow() - cache.date_created
-
-                if ctime.seconds >= cache.remove_in.seconds:
+                if datetime.datetime.utcnow() >= cache.expiration:
                     remove(cachedir, cache.name)
 
         await asyncio.sleep(0.1)
@@ -124,9 +121,7 @@ class MemCacheManager:
 
         while True:
             for index, cache in enumerate(self.caches):
-                ctime = datetime.datetime.utcnow() - cache.date_created
-
-                if ctime.seconds >= cache.remove_in.seconds:
+                if datetime.datetime.utcnow() >= cache.expiration:
                     self.caches.remove(cache)
 
             await asyncio.sleep(0.1)
