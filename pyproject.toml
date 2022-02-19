@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "FunnyCoffee"
-version = "0.2.0-alpha"
+version = "0.3.0-alpha"
 description = "A discord bot"
 authors = ["HugeBrain16 <joshtuck373@gmail.com>"]
 readme = "README.md"
