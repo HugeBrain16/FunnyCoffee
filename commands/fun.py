@@ -35,10 +35,12 @@ class Joke(command.BaseCommand):
         url = "https://icanhazdadjoke.com/"
 
         joke = requests.get(url, headers={"Accept": "text/plain"})
+        joke.encoding = "utf-8"
 
         while joke.status_code != 200 and retries < 3:
             retries += 1
             joke = requests.get(url, headers={"Accept": "text/plain"})
+            joke.encoding = "utf-8"
 
             if joke.status_code == 200:
                 await self.message.respond(joke.text)
