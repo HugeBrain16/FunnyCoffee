@@ -101,3 +101,7 @@ def get_youtube_thumb(url: str):
 
     if query.get("v"):
         return f"http://i3.ytimg.com/vi/{query.get('v')[0]}/hqdefault.jpg"
+
+
+def load_config():
+    return json.load(open("config.json", "r", encoding="UTF-8"))

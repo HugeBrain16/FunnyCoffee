@@ -92,7 +92,7 @@ class LavalinkEventHandler:
 
 class FunnyCoffee(hikari.GatewayBot):
     def __init__(self, token: str):
-        self._config_fallback = json.load(open("config.json", "r", encoding="UTF-8"))
+        self._config_fallback = utils.load_config()
         self.webapp = flask.Flask(
             "FunnyCoffee",
             static_folder="./assets",
@@ -119,7 +119,7 @@ class FunnyCoffee(hikari.GatewayBot):
     @property
     def config(self):
         try:
-            self._config_fallback = json.load(open("config.json", "r", encoding="UTF-8"))
+            self._config_fallback = utils.load_config()
             return self._config_fallback
         except json.decoder.JSONDecodeError:
             return self._config_fallback

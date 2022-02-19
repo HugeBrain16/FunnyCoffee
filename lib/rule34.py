@@ -6,6 +6,7 @@ import json
 from typing import List
 
 from lib import cache
+from lib import utils
 
 BASE_URL = "https://rule34.xxx/index.php"
 
@@ -36,7 +37,7 @@ def get_random_from_query(query: str, limit: int = 1) -> List[int]:
 
 def get_random(limit: int = 1) -> List[int]:
     result = []
-    config = json.load(open("config.json", "r", encoding="UTF-8"))
+    config = utils.load_config()
 
     if config["enableCaching"]:
         cdat = cache.get(".cache", "rule34_LatestPostId")

@@ -2,7 +2,6 @@
 
 import random
 import datetime
-import json
 from typing import List
 from enum import Enum
 
@@ -10,6 +9,7 @@ import requests
 import hikari
 
 from lib import cache
+from lib import utils
 
 BASE = "https://kitsu.io/api/edge"
 
@@ -209,7 +209,7 @@ def _update_anime_search_cache(data: cache.Cache):
 
 def search_anime(query: str, limit: int = 5) -> List[Anime]:
     """search anime by query"""
-    config = json.load(open("config.json", "r", encoding="UTF-8"))
+    config = utils.load_config()
 
     if config["enableCaching"]:
         kitsua_search = cache.get(".cache", "kitsu_animeSearch")
@@ -247,7 +247,7 @@ def search_anime(query: str, limit: int = 5) -> List[Anime]:
 
 def random_anime(limit: int = 5) -> List[Anime]:
     """get random anime"""
-    config = json.load(open("config.json", "r", encoding="UTF-8"))
+    config = utils.load_config()
     result = []
 
     if config["enableCaching"]:

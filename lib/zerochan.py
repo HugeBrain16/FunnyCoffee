@@ -2,11 +2,11 @@
 
 import requests
 import random
-import json
 from bs4 import BeautifulSoup as BSoup
 from typing import List
 
 from lib import cache
+from lib import utils
 
 BASE_URL = "https://www.zerochan.net"
 
@@ -31,7 +31,7 @@ def get_total_posts() -> int:
 
 def get_random(limit: int = 1) -> List[str]:
     result = []
-    config = json.load(open("config.json", "r", encoding="UTF-8"))
+    config = utils.load_config()
 
     if config["enableCaching"]:
         cdat = cache.get(".cache", "zerochan_TotalPost")
