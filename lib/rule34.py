@@ -2,7 +2,6 @@
 
 import requests
 import random
-import json
 from typing import List
 
 from lib import cache
