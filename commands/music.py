@@ -4,6 +4,7 @@ import lavasnek_rs
 from cmdtools.ext.command import CommandWrapper
 
 from lib import command
+from lib import cache
 
 group = CommandWrapper()
 PREFIX = "m+"
@@ -226,14 +227,27 @@ class Queue(command.BaseCommand):
                 for idx, track_queue in enumerate(node.queue):
                     track = track_queue.track
                     tracknum = idx + 1
-                    member = await client.rest.fetch_member(
-                        message.guild_id, track_queue.requester
-                    )
+
+                    if self.client.config["enableCaching"]:
+                        username = self.client.caches.get(f"{track_queue.requester}_username")
+
+                        if username:
+                            username = username.data
+                        else:
+                            member = await client.rest.fetch_member(
+                                message.guild_id, track_queue.requester
+                            )
+                            username = f"{member.username}#{member.discriminator}"
+                            cdat = cache.Cache(f"{track_queue.requester}_username", username)
+                            self.client.caches.store(cdat)
+                    else:
+                        member = await client.rest.fetch_member(
+                            message.guild_id, track_queue.requester
+                        )
+                        username = f"{member.username}#{member.discriminator}"
 
                     trackstr = f"{tracknum}). [{track.info.title}]({track.info.uri})"
-                    trackstr += (
-                        f" (Requester: {member.username}#{member.discriminator})"
-                    )
+                    trackstr += f" (Requester: {username})"
 
                     if tracknum == 1:
                         trackstr += " (Now playing)"
