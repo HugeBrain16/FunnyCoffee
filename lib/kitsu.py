@@ -2,11 +2,14 @@
 
 import random
 import datetime
+import json
 from typing import List
 from enum import Enum
 
 import requests
 import hikari
+
+from lib import cache
 
 BASE = "https://kitsu.io/api/edge"
 
@@ -43,6 +46,23 @@ class Anime:
 
     def __dict__(self) -> dict:
         return self.data
+
+    @classmethod
+    def new(cls, data):
+        """create new instance without fetching data from API"""
+        og_init = cls.__init__
+
+        # use custom initialiser
+        def __init__(self, data):
+            self.data = data
+
+        cls.__init__ = __init__
+        newclass = cls(data)
+
+        # restore initaliser
+        cls.__init__ = og_init
+
+        return newclass
 
     @property
     def content_id(self) -> int:
@@ -166,7 +186,9 @@ class Anime:
         )
         embed.add_field(
             name="Year",
-            value="-" if not self.data["attributes"]["startDate"] else datetime.datetime.strptime(
+            value="-"
+            if not self.data["attributes"]["startDate"]
+            else datetime.datetime.strptime(
                 self.data["attributes"]["startDate"], "%Y-%m-%d"
             ).year,
         )
@@ -174,19 +196,74 @@ class Anime:
         return embed
 
 
-def search_anime(query: str, limit: int = 5) -> List[Anime]:
-    """search anime by query"""
+def _search_anime(query: str, limit: int = 5) -> List[Anime]:
     req = requests.get(BASE + "/anime", params={"filter[text]": query})
     return [Anime(int(data["id"])) for data in req.json()["data"][:limit]]
 
 
+def _update_anime_search_cache(data: cache.Cache):
+    if cache.has_cache(".cache", "kitsu_animeSearch"):
+        cache.remove(".cache", "kitsu_animeSearch")
+    cache.store(".cache", data)
+
+
+def search_anime(query: str, limit: int = 5) -> List[Anime]:
+    """search anime by query"""
+    config = json.load(open("config.json", "r", encoding="UTF-8"))
+
+    if config["enableCaching"]:
+        kitsua_search = cache.get(".cache", "kitsu_animeSearch")
+
+        if kitsua_search:
+            if query in kitsua_search.data:
+                if len(kitsua_search.data[query]) < limit:
+                    kitsua_search.data.update(
+                        {query: [anime.data for anime in _search_anime(query, limit)]},
+                    )
+                    _update_anime_search_cache(kitsua_search)
+
+                return [Anime.new(data) for data in kitsua_search.data[query]]
+            else:
+                kitsua_search.data.update(
+                    {query: [anime.data for anime in _search_anime(query, limit)]},
+                )
+                _update_anime_search_cache(kitsua_search)
+
+                return [Anime.new(data) for data in kitsua_search.data[query]]
+        else:
+            kitsua_search = {}
+            kitsua_search.update(
+                {query: [anime.data for anime in _search_anime(query, limit)]},
+            )
+            cdat = cache.Cache(
+                "kitsu_animeSearch", kitsua_search, 1440
+            )  # long term cache, expired after a day
+            cache.store(".cache", cdat)
+
+            return [Anime.new(data) for data in kitsua_search[query]]
+    else:
+        return _search_anime(query, limit)
+
+
 def random_anime(limit: int = 5) -> List[Anime]:
     """get random anime"""
-    req = requests.get(BASE + "/anime")
+    config = json.load(open("config.json", "r", encoding="UTF-8"))
     result = []
 
+    if config["enableCaching"]:
+        kitsua_index = cache.get(".cache", "kitsu_animeTotalCount")
+
+        if kitsua_index:
+            kitsua_count = kitsua_index.data
+        else:
+            kitsua_count = requests.get(BASE + "/anime").json()["meta"]["count"]
+            cdat = cache.Cache("kitsu_animeTotalCount", kitsua_count)
+            cache.store(".cache", cdat)
+    else:
+        kitsua_count = requests.get(BASE + "/anime").json()["meta"]["count"]
+
     while len(result) < limit:
-        random_id = random.randint(1, req.json()["meta"]["count"])
+        random_id = random.randint(1, kitsua_count)
         areq = requests.get(BASE + "/anime/" + str(random_id))
         if areq.status_code == 200:
             result.append(Anime(random_id))
