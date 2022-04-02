@@ -215,6 +215,8 @@ class Queue(command.BaseCommand):
     def __init__(self):
         super().__init__(name="queue")
 
+        self.add_option("action", default="show")
+
     async def show_queue(self, client, message):
         node = await client.lavalink.get_guild_node(message.guild_id)
 
@@ -226,8 +228,8 @@ class Queue(command.BaseCommand):
                     track = track_queue.track
                     tracknum = idx + 1
 
-                    if ctx.attrs.client.config["enableCaching"]:
-                        username = ctx.attrs.client.caches.get(
+                    if client.config["enableCaching"]:
+                        username = client.caches.get(
                             f"{track_queue.requester}_username"
                         )
 
@@ -241,7 +243,7 @@ class Queue(command.BaseCommand):
                             cdat = cache.Cache(
                                 f"{track_queue.requester}_username", username
                             )
-                            ctx.attrs.client.caches.store(cdat)
+                            client.caches.store(cdat)
                     else:
                         member = await client.rest.fetch_member(
                             message.guild_id, track_queue.requester
