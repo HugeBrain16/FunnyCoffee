@@ -1,12 +1,13 @@
 import hikari
 import cmdtools
 import lavasnek_rs
-from cmdtools.ext.command import CommandWrapper
+from cmdtools.ext.command import Group
+from cmdtools.callback.option import OptionModifier
 
 from lib import command
 from lib import cache
 
-group = CommandWrapper()
+group = Group("Music")
 PREFIX = "m+"
 
 
@@ -40,18 +41,18 @@ class Join(command.BaseCommand):
     def __init__(self):
         super().__init__(name="join")
 
-    async def join(self):
-        bot_voice_state = self.client.cache.get_voice_state(
-            self.message.guild_id, self.client.get_me().id
+    async def join(self, ctx):
+        bot_voice_state = ctx.attrs.client.cache.get_voice_state(
+            ctx.attrs.message.guild_id, ctx.attrs.client.get_me().id
         )
 
         if not bot_voice_state:
-            channel_id = await join_voice_channel(self.message, self.client)
+            channel_id = await join_voice_channel(ctx.attrs.message, ctx.attrs.client)
 
             if channel_id:
-                await self.message.add_reaction("👍")
+                await ctx.attrs.message.add_reaction("👍")
         else:
-            await self.message.respond("I'm in a voice channel!")
+            await ctx.attrs.message.respond("I'm in a voice channel!")
 
 
 @group.command()
@@ -61,32 +62,32 @@ class Leave(command.BaseCommand):
     def __init__(self):
         super().__init__(name="leave")
 
-    async def leave(self):
-        bot_voice_state = self.client.cache.get_voice_state(
-            self.message.guild_id, self.client.get_me().id
+    async def leave(self, ctx):
+        bot_voice_state = ctx.attrs.client.cache.get_voice_state(
+            ctx.attrs.message.guild_id, ctx.attrs.client.get_me().id
         )
-        user_voice_state = self.client.cache.get_voice_state(
-            self.message.guild_id, self.message.author.id
+        user_voice_state = ctx.attrs.client.cache.get_voice_state(
+            ctx.attrs.message.guild_id, ctx.attrs.message.author.id
         )
 
         if bot_voice_state:
             if user_voice_state:
                 if bot_voice_state.channel_id == user_voice_state.channel_id:
-                    await self.client.lavalink.destroy(self.message.guild_id)
-                    await self.client.lavalink.leave(self.message.guild_id)
+                    await ctx.attrs.client.lavalink.destroy(ctx.attrs.message.guild_id)
+                    await ctx.attrs.client.lavalink.leave(ctx.attrs.message.guild_id)
 
-                    await self.client.lavalink.remove_guild_node(self.message.guild_id)
-                    await self.client.lavalink.remove_guild_from_loops(
-                        self.message.guild_id
+                    await ctx.attrs.client.lavalink.remove_guild_node(ctx.attrs.message.guild_id)
+                    await ctx.attrs.client.lavalink.remove_guild_from_loops(
+                        ctx.attrs.message.guild_id
                     )
 
-                    await self.message.add_reaction("👋")
+                    await ctx.attrs.message.add_reaction("👋")
                 else:
-                    await self.message.respond("We're not in the same voice channel!")
+                    await ctx.attrs.message.respond("We're not in the same voice channel!")
             else:
-                await self.message.respond("You're not connected to a voice channel!")
+                await ctx.attrs.message.respond("You're not connected to a voice channel!")
         else:
-            await self.message.respond("I'm not in a voice channel!")
+            await ctx.attrs.message.respond("I'm not in a voice channel!")
 
 
 @group.command()
@@ -96,14 +97,14 @@ class Stop(command.BaseCommand):
     def __init__(self):
         super().__init__(name="stop")
 
-    async def stop(self):
-        node = await self.client.lavalink.get_guild_node(self.message.guild_id)
+    async def stop(self, ctx):
+        node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
 
         if node.now_playing:
-            await self.client.lavalink.stop(self.message.guild_id)
-            await self.message.add_reaction("🛑")
+            await ctx.attrs.client.lavalink.stop(ctx.attrs.message.guild_id)
+            await ctx.attrs.message.add_reaction("🛑")
         else:
-            await self.message.respond("I'm not playing anything right now.")
+            await ctx.attrs.message.respond("I'm not playing anything right now.")
 
 
 @group.command()
@@ -113,14 +114,14 @@ class Pause(command.BaseCommand):
     def __init__(self):
         super().__init__(name="pause")
 
-    async def pause(self):
-        node = await self.client.lavalink.get_guild_node(self.message.guild_id)
+    async def pause(self, ctx):
+        node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
 
         if not node.is_paused:
-            await self.client.lavalink.pause(self.message.guild_id)
-            await self.message.add_reaction("⏸")
+            await ctx.attrs.client.lavalink.pause(ctx.attrs.message.guild_id)
+            await ctx.attrs.message.add_reaction("⏸")
         else:
-            await self.message.respond("Song is currently paused!")
+            await ctx.attrs.message.respond("Song is currently paused!")
 
 
 @group.command()
@@ -130,14 +131,14 @@ class Resume(command.BaseCommand):
     def __init__(self):
         super().__init__(name="resume")
 
-    async def resume(self):
-        node = await self.client.lavalink.get_guild_node(self.message.guild_id)
+    async def resume(self, ctx):
+        node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
 
         if node.is_paused:
-            await self.client.lavalink.resume(self.message.guild_id)
-            await self.message.add_reaction("▶")
+            await ctx.attrs.client.lavalink.resume(ctx.attrs.message.guild_id)
+            await ctx.attrs.message.add_reaction("▶")
         else:
-            await self.message.respond("Song is currently not paused!")
+            await ctx.attrs.message.respond("Song is currently not paused!")
 
 
 @group.command()
@@ -147,17 +148,17 @@ class Skip(command.BaseCommand):
     def __init__(self):
         super().__init__(name="skip")
 
-    async def skip(self):
-        skip = await self.client.lavalink.skip(self.message.guild_id)
-        node = await self.client.lavalink.get_guild_node(self.message.guild_id)
+    async def skip(self, ctx):
+        skip = await ctx.attrs.client.lavalink.skip(ctx.attrs.message.guild_id)
+        node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
 
         if not skip or not node:
-            await self.message.respond("Nothing to skip.")
+            await ctx.attrs.message.respond("Nothing to skip.")
         else:
             if not node.queue:
-                await self.client.lavalink.stop(self.message.guild_id)
+                await ctx.attrs.client.lavalink.stop(ctx.attrs.message.guild_id)
 
-            await self.message.add_reaction("⏭")
+            await ctx.attrs.message.add_reaction("⏭")
 
 
 @group.command()
@@ -167,47 +168,44 @@ class Play(command.BaseCommand):
     def __init__(self):
         super().__init__(name="play")
 
-    async def error_play(self, error):
-        if isinstance(error, cmdtools.MissingRequiredArgument):
-            if error.param == "_query":
-                await self.message.respond("Search query cannot be empty!")
+        self.add_option("query", modifier=OptionModifier.ConsumeRest)
 
-    async def play(self, *_query):
-        if _query:
-            query = " ".join(_query)
-        else:
-            raise cmdtools.MissingRequiredArgument("invoke", "_query")
+    async def error_play(self, ctx):
+        if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
+            if ctx.error.option == "query":
+                await ctx.attrs.message.respond("Search query cannot be empty!")
 
-        lavacon = self.client.lavalink.get_guild_gateway_connection_info(
-            self.message.guild_id
+    async def play(self, ctx):
+        lavacon = ctx.attrs.client.lavalink.get_guild_gateway_connection_info(
+            ctx.attrs.message.guild_id
         )
 
         if not lavacon:
-            await join_voice_channel(self.message, self.client)
+            await join_voice_channel(ctx.attrs.message, ctx.attrs.client)
 
-        query_info = await self.client.lavalink.auto_search_tracks(query)
+        query_info = await ctx.attrs.client.lavalink.auto_search_tracks(ctx.options.query)
 
         if not query_info.tracks:
-            await self.message.respond(f"Nothing found from search query:\n`{query}`.")
+            await ctx.attrs.message.respond(f"Nothing found from search query:\n`{query}`.")
         else:
             try:
-                await self.client.lavalink.play(
-                    self.message.guild_id, query_info.tracks[0]
-                ).requester(self.message.author.id).queue()
+                await ctx.attrs.client.lavalink.play(
+                    ctx.attrs.message.guild_id, query_info.tracks[0]
+                ).requester(ctx.attrs.message.author.id).queue()
 
-                node = await self.client.lavalink.get_guild_node(self.message.guild_id)
+                node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
                 node.set_data(
                     {
-                        "request_channel_id": self.message.channel_id,
-                        "client": self.client,
+                        "request_channel_id": ctx.attrs.message.channel_id,
+                        "client": ctx.attrs.client,
                     }
                 )
 
-                await self.message.respond(
+                await ctx.attrs.message.respond(
                     f"Added to queue: {query_info.tracks[0].info.title}"
                 )
             except lavasnek_rs.NoSessionPresent:
-                await self.message.respond("I'm not connected to a voice channel!")
+                await ctx.attrs.message.respond("I'm not connected to a voice channel!")
 
 
 @group.command()
@@ -228,8 +226,8 @@ class Queue(command.BaseCommand):
                     track = track_queue.track
                     tracknum = idx + 1
 
-                    if self.client.config["enableCaching"]:
-                        username = self.client.caches.get(
+                    if ctx.attrs.client.config["enableCaching"]:
+                        username = ctx.attrs.client.caches.get(
                             f"{track_queue.requester}_username"
                         )
 
@@ -243,7 +241,7 @@ class Queue(command.BaseCommand):
                             cdat = cache.Cache(
                                 f"{track_queue.requester}_username", username
                             )
-                            self.client.caches.store(cdat)
+                            ctx.attrs.client.caches.store(cdat)
                     else:
                         member = await client.rest.fetch_member(
                             message.guild_id, track_queue.requester
@@ -287,12 +285,12 @@ class Queue(command.BaseCommand):
         else:
             await message.respond("Queue is empty!")
 
-    async def queue(self, action="show"):
-        action = action.lower()
+    async def queue(self, ctx):
+        action = ctx.options.action.lower()
 
         if action == "show":
-            await self.show_queue(self.client, self.message)
+            await self.show_queue(ctx.attrs.client, ctx.attrs.message)
         elif action == "clear":
-            await self.clear_queue(self.client, self.message)
+            await self.clear_queue(ctx.attrs.client, ctx.attrs.message)
         else:
-            await self.message.respond(f"Invalid action: `{action}`")
+            await ctx.attrs.message.respond(f"Invalid action: `{action}`")
