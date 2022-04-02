@@ -1,7 +1,7 @@
 import os
 import importlib
 import json
-from cmdtools.ext.command import CommandWrapper
+from cmdtools.ext.command import Group
 from typing import Iterable, List
 from urllib import parse as urlparse
 
@@ -44,7 +44,7 @@ def load_command(name: str):
             mod = importlib.import_module(modpath)
 
             if hasattr(mod, "group") and name == modname:
-                return mod if isinstance(mod.group, CommandWrapper) else None
+                return mod if isinstance(mod.group, Group) else None
 
 
 def get_commands() -> List[str]:

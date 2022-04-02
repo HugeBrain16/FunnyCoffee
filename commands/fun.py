@@ -2,11 +2,13 @@ import random
 import hikari
 import requests
 import cmdtools
-from cmdtools.ext.command import CommandWrapper
+from cmdtools.ext.command import Group
+from cmdtools.callback.option import OptionModifier
+from cmdtools.callback import Callback, ErrorCallback
 
 from lib import command
 
-group = CommandWrapper()
+group = Group("Fun")
 PREFIX = "f+"
 
 
@@ -17,10 +19,10 @@ class Dice(command.BaseCommand):
     def __init__(self):
         super().__init__(name="dice")
 
-    async def dice(self):
+    async def dice(self, ctx):
         dice = random.randint(1, 6)
 
-        await self.message.respond(f"Your dice is **{dice}**")
+        await ctx.attrs.message.respond(f"Your dice is **{dice}**")
 
 
 @group.command()
@@ -30,7 +32,7 @@ class Joke(command.BaseCommand):
     def __init__(self):
         super().__init__(name="joke")
 
-    async def joke(self):
+    async def joke(self, ctx):
         retries = 0
         url = "https://icanhazdadjoke.com/"
 
@@ -43,13 +45,13 @@ class Joke(command.BaseCommand):
             joke.encoding = "utf-8"
 
             if joke.status_code == 200:
-                await self.message.respond(joke.text)
+                await ctx.attrs.message.respond(joke.text)
                 break
         else:
             if joke.status_code == 200:
-                await self.message.respond(joke.text)
+                await ctx.attrs.message.respond(joke.text)
             else:
-                await self.message.respond("Error fetching joke!")
+                await ctx.attrs.message.respond("Error fetching joke!")
 
 
 @group.command()
@@ -60,23 +62,19 @@ class Magic8Ball(command.BaseCommand):
     def __init__(self):
         super().__init__(name="8ball")
 
-    @property
-    def callback(self):
-        return self._8ball
+        self._callback = Callback(self._8ball)
+        self._callback.errcall = ErrorCallback(self.error_8ball)
 
-    async def error_8ball(self, error):
-        if isinstance(error, cmdtools.MissingRequiredArgument):
-            if error.param == "question":
-                await self.message.respond("You need to ask a question!")
+        self.add_option("question", modifier=OptionModifier.ConsumeRest)
+
+    async def error_8ball(self, ctx):
+        if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
+            if ctx.error.option == "question":
+                await ctx.attrs.message.respond("You need to ask a question!")
         else:
             raise error
 
-    async def _8ball(self, *question):
-        if question:
-            _question = " ".join(question)
-        else:
-            raise cmdtools.MissingRequiredArgument("invoke", "question")
-
+    async def _8ball(self, ctx):
         answers = [
             # affirmative
             {"text": "It is certain.", "color": 0x02590F},
@@ -108,10 +106,10 @@ class Magic8Ball(command.BaseCommand):
         embed.set_thumbnail(
             "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Magic8ball.jpg/220px-Magic8ball.jpg"
         )
-        embed.set_author(name=_question)
+        embed.set_author(name=ctx.options.question)
         member = await self.client.rest.fetch_member(
-            self.message.guild_id, self.message.author.id
+            ctx.attrs.message.guild_id, ctx.attrs.message.author.id
         )
         embed.set_footer(text=f"Asked by {member.nickname or member.username}")
 
-        await self.message.respond(embed=embed)
+        await ctx.attrs.message.respond(embed=embed)

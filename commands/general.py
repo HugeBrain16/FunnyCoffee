@@ -5,12 +5,13 @@ import datetime
 import random
 
 from typing import List
-from cmdtools.ext.command import Command, CommandWrapper
+from cmdtools.ext.command import Group
+from cmdtools.callback import Callback, ErrorCallback
 from lib import utils
 from lib import meta
 from lib import command
 
-group = CommandWrapper()
+group = Group("General")
 PREFIX = "fc!"
 
 
@@ -21,9 +22,9 @@ class Ping(command.BaseCommand):
     def __init__(self):
         super().__init__(name="ping")
 
-    async def ping(self):
-        await self.message.respond(
-            f"Pong! (**{self.client.heartbeat_latency * 1000:.2f}ms**)"
+    async def ping(self, ctx):
+        await ctx.attrs.message.respond(
+            f"Pong! (**{ctx.attrs.client.heartbeat_latency * 1000:.2f}ms**)"
         )
 
 
@@ -34,10 +35,10 @@ class Avatar(command.BaseCommand):
     def __init__(self):
         super().__init__(name="avatar")
 
-    async def avatar(self):
-        if self.message.mentions.user_ids:
-            user = await self.client.rest.fetch_member(
-                self.message.guild_id, self.message.mentions.user_ids[0]
+    async def avatar(self, ctx):
+        if ctx.attrs.message.mentions.user_ids:
+            user = await ctx.attrs.client.rest.fetch_member(
+                ctx.attrs.message.guild_id, ctx.attrs.message.mentions.user_ids[0]
             )
 
             if user:
@@ -46,23 +47,23 @@ class Avatar(command.BaseCommand):
                 )
                 embed.set_image(user.avatar_url)
 
-                await self.message.respond(embed=embed)
+                await ctx.attrs.message.respond(embed=embed)
             else:
-                await self.message.respond("User not found!")
+                await ctx.attrs.message.respond("User not found!")
         else:
-            author = await self.client.rest.fetch_member(
-                self.message.guild_id, self.message.author.id
+            author = await ctx.attrs.client.rest.fetch_member(
+                ctx.attrs.message.guild_id, ctx.attrs.message.author.id
             )
             embed = hikari.Embed(
                 title=f"{author.nickname or author.username}'s Avatar", color=0xFFFFFF
             )
             embed.set_image(author.avatar_url)
 
-            await self.message.respond(embed=embed)
+            await ctx.attrs.message.respond(embed=embed)
 
-    async def error_avatar(self, error):
-        if isinstance(error, hikari.NotFoundError):
-            await self.message.respond("User not found!")
+    async def error_avatar(self, ctx):
+        if isinstance(ctx.error, hikari.NotFoundError):
+            await ctx.attrs.message.respond("User not found!")
         else:
             raise error
 
@@ -74,11 +75,9 @@ class Help(command.BaseCommand):
     def __init__(self):
         super().__init__(name="help")
 
-    @property
-    def callback(self):
-        return self.__help
+        self._callback = Callback(self.__help)
 
-    async def __help(self):
+    async def __help(self, ctx):
         embed = hikari.Embed(title="Help", color=0xFFFFFF)
         embed.description = "Showing all available commands"
 
@@ -92,7 +91,7 @@ class Help(command.BaseCommand):
                     inline=True,
                 )
 
-        await self.message.respond(embed=embed)
+        await ctx.attrs.message.respond(embed=embed)
 
 
 @group.command()
@@ -103,14 +102,16 @@ class CmdDetail(command.BaseCommand):
     def __init__(self):
         super().__init__(name="cmd")
 
-    async def error_cmd(self, error):
-        if isinstance(error, cmdtools.MissingRequiredArgument):
-            if error.param == "name":
-                await self.message.respond("Please provide the command name!")
+        self.add_option("name")
+
+    async def error_cmd(self, ctx):
+        if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
+            if ctx.error.option == "name":
+                await ctx.attrs.message.respond("Please provide the command name!")
         else:
             raise error
 
-    async def cmd(self, name: str):
+    async def cmd(self, ctx):
         embed = hikari.Embed(title="Search Result", color=0x00FF00)
         embed.set_author(name="Command Details")
 
@@ -118,7 +119,7 @@ class CmdDetail(command.BaseCommand):
             mod = utils.load_command(command)
 
             for cobj in mod.group.commands:
-                if name in cobj.name:
+                if ctx.options.name in cobj.name:
                     details = ""
 
                     if hasattr(cobj, "help"):
@@ -134,7 +135,7 @@ class CmdDetail(command.BaseCommand):
 
                     embed.add_field(name=cobj.name, value=details, inline=True)
 
-        await self.message.respond(embed=embed)
+        await ctx.attrs.message.respond(embed=embed)
 
 
 @group.command()
@@ -147,22 +148,22 @@ class Info(command.BaseCommand):
     def __init__(self):
         super().__init__(name="info")
 
-    async def info(self):
+    async def info(self, ctx):
         embed = hikari.Embed(title="FunnyCoffee", color=0x00FFFF)
         embed.set_footer(text=f"version {meta.Version(0)}")
-        embed.set_thumbnail(self.client.get_me().avatar_url)
+        embed.set_thumbnail(ctx.attrs.client.get_me().avatar_url)
 
         embed.description = ""
         embed.description += "https://github.com/HugeBrain16/FunnyCoffee" + "\n"
         embed.description += (
-            f"Latency: **{self.client.heartbeat_latency * 1000:.2f}ms**" + "\n"
+            f"Latency: **{ctx.attrs.client.heartbeat_latency * 1000:.2f}ms**" + "\n"
         )
         embed.description += (
-            f"Uptime: **{str(datetime.datetime.utcnow() - self.client.start_time)}**"
+            f"Uptime: **{str(datetime.datetime.utcnow() - ctx.attrs.client.start_time)}**"
             + "\n"
         )
 
-        await self.message.respond(embed=embed)
+        await ctx.attrs.message.respond(embed=embed)
 
 
 @group.command()
@@ -202,27 +203,27 @@ class UserInfo(command.BaseCommand):
 
         return embed
 
-    async def userinfo(self):
-        if self.message.mentions.user_ids:
-            member = await self.client.rest.fetch_member(
-                self.message.guild_id, self.message.mentions.user_ids[0]
+    async def userinfo(self, ctx):
+        if ctx.attrs.message.mentions.user_ids:
+            member = await ctx.attrs.client.rest.fetch_member(
+                ctx.attrs.message.guild_id, ctx.attrs.message.mentions.user_ids[0]
             )
 
             if member:
                 embed = self.get_detail(member)
-                await self.message.respond(embed=embed)
+                await ctx.attrs.message.respond(embed=embed)
         else:
-            member = await self.client.rest.fetch_member(
-                self.message.guild_id, self.message.author.id
+            member = await ctx.attrs.client.rest.fetch_member(
+                ctx.attrs.message.guild_id, ctx.attrs.message.author.id
             )
             embed = self.get_detail(member)
-            await self.message.respond(embed=embed)
+            await ctx.attrs.message.respond(embed=embed)
 
-    async def error_userinfo(self, error):
-        if isinstance(error, hikari.NotFoundError):
-            await self.message.respond("User not found!")
+    async def error_userinfo(self, ctx):
+        if isinstance(ctx.error, hikari.NotFoundError):
+            await ctx.attrs.message.respond("User not found!")
         else:
-            raise error
+            raise ctx.error
 
 
 @group.command()
@@ -235,8 +236,8 @@ class GuildInfo(command.BaseCommand):
     def __init__(self):
         super().__init__(name="guildinfo")
 
-    async def guildinfo(self):
-        guild = await self.client.rest.fetch_guild(self.message.guild_id)
+    async def guildinfo(self, ctx):
+        guild = await ctx.attrs.client.rest.fetch_guild(ctx.attrs.message.guild_id)
 
         if guild:
             embed = hikari.Embed()
@@ -282,7 +283,7 @@ class GuildInfo(command.BaseCommand):
                 owner_field_value += f"\nNickname: **{owner.nickname}**"
             embed.add_field(name="Owner", value=owner_field_value, inline=False)
 
-            await self.message.respond(embed=embed)
+            await ctx.attrs.message.respond(embed=embed)
 
-    async def error_guildinfo(self, error):
-        raise error
+    async def error_guildinfo(self, ctx):
+        raise ctx.error

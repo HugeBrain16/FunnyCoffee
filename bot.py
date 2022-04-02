@@ -13,7 +13,6 @@ import cmdtools
 import flask
 import psutil
 import lavasnek_rs
-from cmdtools.ext.command import RunnerError
 
 from lib import utils
 from lib import meta
@@ -367,14 +366,14 @@ class FunnyCoffee(hikari.GatewayBot):
                 await message.respond(random.choice(["hello", "yo", "hi", "hey"]))
             else:
                 for cmd in self.commands:
-                    cmdobj = cmdtools.AioCmd(message.content, prefix=cmd.PREFIX)
+                    cmdobj = cmdtools.Cmd(message.content, prefix=cmd.PREFIX)
 
                     if cmdobj.name:
                         try:
                             await cmd.group.run(
                                 cmdobj, attrs={"message": message, "client": self}
                             )
-                        except RunnerError:
+                        except cmdtools.NotFoundError:
                             if self.config["logging"]["unknownCommand"]:
                                 guild: hikari.RESTGuild = await self.rest.fetch_guild(
                                     message.guild_id
