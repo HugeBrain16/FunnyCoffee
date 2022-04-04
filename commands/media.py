@@ -93,7 +93,7 @@ class Anime(command.BaseCommand):
         if anime:
             await ctx.attrs.message.respond(embed=anime[0].discord_embed(cover=True))
         else:
-            await ctx.attrs.message.respond(f"Not found: '{query}'")
+            await ctx.attrs.message.respond(f"Not found: '{ctx.options.query}'")
 
     async def error_anime(self, ctx):
         raise ctx.error
