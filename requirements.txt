@@ -1,7 +1,7 @@
 hikari
 requests
 beautifulsoup4
-cmdtools-py>=3.0.0
+cmdtools-py>=3.0.1
 Flask>=2.0.0
 psutil
 lavasnek_rs
