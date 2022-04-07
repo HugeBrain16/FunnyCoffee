@@ -72,7 +72,7 @@ class Magic8Ball(command.BaseCommand):
             if ctx.error.option == "question":
                 await ctx.attrs.message.respond("You need to ask a question!")
         else:
-            raise error
+            raise ctx.error
 
     async def _8ball(self, ctx):
         answers = [
@@ -107,7 +107,7 @@ class Magic8Ball(command.BaseCommand):
             "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Magic8ball.jpg/220px-Magic8ball.jpg"
         )
         embed.set_author(name=ctx.options.question)
-        member = await self.client.rest.fetch_member(
+        member = await ctx.attrs.client.rest.fetch_member(
             ctx.attrs.message.guild_id, ctx.attrs.message.author.id
         )
         embed.set_footer(text=f"Asked by {member.nickname or member.username}")
