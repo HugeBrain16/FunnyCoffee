@@ -2,14 +2,13 @@ import random
 import hikari
 import requests
 import cmdtools
-from cmdtools.ext.command import Group
 from cmdtools.callback.option import OptionModifier
 from cmdtools.callback import Callback, ErrorCallback
 from bs4 import BeautifulSoup
 
 from lib import command
 
-group = Group("Fun")
+group = command.BaseGroup("Fun")
 PREFIX = "f+"
 
 

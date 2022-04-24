@@ -5,13 +5,12 @@ import datetime
 import random
 
 from typing import List
-from cmdtools.ext.command import Group
 from cmdtools.callback import Callback, ErrorCallback
 from lib import utils
 from lib import meta
 from lib import command
 
-group = Group("General")
+group = command.BaseGroup("General")
 PREFIX = "fc!"
 
 
@@ -125,6 +124,10 @@ class CmdDetail(command.BaseCommand):
                     if hasattr(cobj, "help"):
                         if isinstance(cobj.help, str):
                             details += cobj.help + "\n\n"
+                    if cobj.__disabled__:
+                        details += "Disabled: **Yes**" + "\n"
+                    else:
+                        details += "Disabled: **No**" + "\n"
                     details += f"Category: **{command.capitalize()}**" + "\n"
                     if hasattr(mod, "PREFIX"):
                         if isinstance(mod.PREFIX, str):

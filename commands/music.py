@@ -1,13 +1,12 @@
 import hikari
 import cmdtools
 import lavasnek_rs
-from cmdtools.ext.command import Group
 from cmdtools.callback.option import OptionModifier
 
 from lib import command
 from lib import cache
 
-group = Group("Music")
+group = command.BaseGroup("Music")
 PREFIX = "m+"
 
 

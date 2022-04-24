@@ -1,5 +1,4 @@
 import random
-from cmdtools.ext.command import Group
 from cmdtools.callback.option import OptionModifier
 
 from lib import zerochan
@@ -7,7 +6,7 @@ from lib import rule34
 from lib import kitsu
 from lib import command
 
-group = Group("Media")
+group = command.BaseGroup("Media")
 
 PREFIX = "m!"
 
