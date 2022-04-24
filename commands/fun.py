@@ -5,6 +5,7 @@ import cmdtools
 from cmdtools.ext.command import Group
 from cmdtools.callback.option import OptionModifier
 from cmdtools.callback import Callback, ErrorCallback
+from bs4 import BeautifulSoup
 
 from lib import command
 
@@ -113,3 +114,60 @@ class Magic8Ball(command.BaseCommand):
         embed.set_footer(text=f"Asked by {member.nickname or member.username}")
 
         await ctx.attrs.message.respond(embed=embed)
+
+@group.command()
+class Ascii(command.BaseCommand):
+    __help__ = "some kind of twitch ascii art copypasta"
+
+    def __init__(self):
+        super().__init__(name="ascii")
+
+        self._callback = Callback(self.ascii_)
+        self._callback.errcall = ErrorCallback(self.error_ascii)
+
+        self.add_option("keyword", modifier=OptionModifier.ConsumeRest)
+
+    @staticmethod
+    def search_ascii(keyword, max_result=1, safe=True):
+        req = requests.get("https://www.twitchquotes.com/copypastas/search", params={"query": keyword})
+        soup = BeautifulSoup(req.text, 'html.parser')
+
+        asciis = soup.find_all("article", {"class": "twitch-copypasta-card-ascii_art"})
+        ascii_safe = []
+
+        for ascii_ in asciis:
+            tags = ascii_.find_all("h4", {"class": "tag-label"})
+        
+            if tags:
+                tags = [tag.text.lower().strip() for tag in tags]
+            
+                if "nsfw" not in tags and ascii_.find("img", {"class": "-blurred-image"}) is None:
+                    ascii_safe.append(ascii_)
+            else:
+                ascii_safe.append(ascii_)
+
+        if safe:
+            asciis = ascii_safe
+
+        return [ascii_.find("span", {"class": "-main-text"}).text for ascii_ in asciis[:max_result]]
+
+    async def error_ascii(self, ctx):
+        if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
+            if ctx.error.option == "keyword":
+                await ctx.attrs.message.respond("Search keyword is required!")
+        else:
+            raise ctx.error
+
+    async def ascii_(self, ctx):
+        options = {}
+        channel = await ctx.attrs.client.rest.fetch_channel(ctx.attrs.message.channel_id)
+
+        if channel.is_nsfw:
+            options.update({"safe": False})
+
+        result = self.search_ascii(ctx.options.keyword, **options)
+
+        if result:
+            await ctx.attrs.message.respond(result[0][:2000])
+        else:
+            await ctx.attrs.message.respond("Not found: " + ctx.options.keyword)
