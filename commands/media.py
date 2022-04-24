@@ -45,7 +45,9 @@ class Rule34(command.BaseCommand):
 
     async def rule34(self, ctx):
         sendtip = False
-        channel = await ctx.attrs.client.rest.fetch_channel(ctx.attrs.message.channel_id)
+        channel = await ctx.attrs.client.rest.fetch_channel(
+            ctx.attrs.message.channel_id
+        )
 
         if channel.is_nsfw:
             if not ctx.options.query:

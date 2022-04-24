@@ -75,16 +75,22 @@ class Leave(command.BaseCommand):
                     await ctx.attrs.client.lavalink.destroy(ctx.attrs.message.guild_id)
                     await ctx.attrs.client.lavalink.leave(ctx.attrs.message.guild_id)
 
-                    await ctx.attrs.client.lavalink.remove_guild_node(ctx.attrs.message.guild_id)
+                    await ctx.attrs.client.lavalink.remove_guild_node(
+                        ctx.attrs.message.guild_id
+                    )
                     await ctx.attrs.client.lavalink.remove_guild_from_loops(
                         ctx.attrs.message.guild_id
                     )
 
                     await ctx.attrs.message.add_reaction("👋")
                 else:
-                    await ctx.attrs.message.respond("We're not in the same voice channel!")
+                    await ctx.attrs.message.respond(
+                        "We're not in the same voice channel!"
+                    )
             else:
-                await ctx.attrs.message.respond("You're not connected to a voice channel!")
+                await ctx.attrs.message.respond(
+                    "You're not connected to a voice channel!"
+                )
         else:
             await ctx.attrs.message.respond("I'm not in a voice channel!")
 
@@ -97,7 +103,9 @@ class Stop(command.BaseCommand):
         super().__init__(name="stop")
 
     async def stop(self, ctx):
-        node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
+        node = await ctx.attrs.client.lavalink.get_guild_node(
+            ctx.attrs.message.guild_id
+        )
 
         if node.now_playing:
             await ctx.attrs.client.lavalink.stop(ctx.attrs.message.guild_id)
@@ -114,7 +122,9 @@ class Pause(command.BaseCommand):
         super().__init__(name="pause")
 
     async def pause(self, ctx):
-        node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
+        node = await ctx.attrs.client.lavalink.get_guild_node(
+            ctx.attrs.message.guild_id
+        )
 
         if not node.is_paused:
             await ctx.attrs.client.lavalink.pause(ctx.attrs.message.guild_id)
@@ -131,7 +141,9 @@ class Resume(command.BaseCommand):
         super().__init__(name="resume")
 
     async def resume(self, ctx):
-        node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
+        node = await ctx.attrs.client.lavalink.get_guild_node(
+            ctx.attrs.message.guild_id
+        )
 
         if node.is_paused:
             await ctx.attrs.client.lavalink.resume(ctx.attrs.message.guild_id)
@@ -149,7 +161,9 @@ class Skip(command.BaseCommand):
 
     async def skip(self, ctx):
         skip = await ctx.attrs.client.lavalink.skip(ctx.attrs.message.guild_id)
-        node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
+        node = await ctx.attrs.client.lavalink.get_guild_node(
+            ctx.attrs.message.guild_id
+        )
 
         if not skip or not node:
             await ctx.attrs.message.respond("Nothing to skip.")
@@ -182,17 +196,23 @@ class Play(command.BaseCommand):
         if not lavacon:
             await join_voice_channel(ctx.attrs.message, ctx.attrs.client)
 
-        query_info = await ctx.attrs.client.lavalink.auto_search_tracks(ctx.options.query)
+        query_info = await ctx.attrs.client.lavalink.auto_search_tracks(
+            ctx.options.query
+        )
 
         if not query_info.tracks:
-            await ctx.attrs.message.respond(f"Nothing found from search query:\n`{query}`.")
+            await ctx.attrs.message.respond(
+                f"Nothing found from search query:\n`{query}`."
+            )
         else:
             try:
                 await ctx.attrs.client.lavalink.play(
                     ctx.attrs.message.guild_id, query_info.tracks[0]
                 ).requester(ctx.attrs.message.author.id).queue()
 
-                node = await ctx.attrs.client.lavalink.get_guild_node(ctx.attrs.message.guild_id)
+                node = await ctx.attrs.client.lavalink.get_guild_node(
+                    ctx.attrs.message.guild_id
+                )
                 node.set_data(
                     {
                         "request_channel_id": ctx.attrs.message.channel_id,

@@ -14,7 +14,7 @@ class BaseCommand(Command):
 
 
 class BaseGroup(Group):
-    async def run(self, command, *, attrs = None):
+    async def run(self, command, *, attrs=None):
         for cmd in self.commands:
             if cmd.name == command.name or command.name in cmd.aliases:
                 if not cmd.__disabled__:
