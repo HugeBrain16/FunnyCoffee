@@ -1,5 +1,4 @@
 import random
-from cmdtools.ext.command import Group
 from cmdtools.callback.option import OptionModifier
 
 from lib import zerochan
@@ -7,7 +6,7 @@ from lib import rule34
 from lib import kitsu
 from lib import command
 
-group = Group("Media")
+group = command.BaseGroup("Media")
 
 PREFIX = "m!"
 
@@ -46,7 +45,9 @@ class Rule34(command.BaseCommand):
 
     async def rule34(self, ctx):
         sendtip = False
-        channel = await ctx.attrs.client.rest.fetch_channel(ctx.attrs.message.channel_id)
+        channel = await ctx.attrs.client.rest.fetch_channel(
+            ctx.attrs.message.channel_id
+        )
 
         if channel.is_nsfw:
             if not ctx.options.query:

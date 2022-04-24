@@ -2,14 +2,13 @@ import random
 import hikari
 import requests
 import cmdtools
-from cmdtools.ext.command import Group
 from cmdtools.callback.option import OptionModifier
 from cmdtools.callback import Callback, ErrorCallback
 from bs4 import BeautifulSoup
 
 from lib import command
 
-group = Group("Fun")
+group = command.BaseGroup("Fun")
 PREFIX = "f+"
 
 
@@ -115,6 +114,7 @@ class Magic8Ball(command.BaseCommand):
 
         await ctx.attrs.message.respond(embed=embed)
 
+
 @group.command()
 class Ascii(command.BaseCommand):
     __help__ = "some kind of twitch ascii art copypasta"
@@ -129,19 +129,24 @@ class Ascii(command.BaseCommand):
 
     @staticmethod
     def search_ascii(keyword, max_result=1, safe=True):
-        req = requests.get("https://www.twitchquotes.com/copypastas/search", params={"query": keyword})
-        soup = BeautifulSoup(req.text, 'html.parser')
+        req = requests.get(
+            "https://www.twitchquotes.com/copypastas/search", params={"query": keyword}
+        )
+        soup = BeautifulSoup(req.text, "html.parser")
 
         asciis = soup.find_all("article", {"class": "twitch-copypasta-card-ascii_art"})
         ascii_safe = []
 
         for ascii_ in asciis:
             tags = ascii_.find_all("h4", {"class": "tag-label"})
-        
+
             if tags:
                 tags = [tag.text.lower().strip() for tag in tags]
-            
-                if "nsfw" not in tags and ascii_.find("img", {"class": "-blurred-image"}) is None:
+
+                if (
+                    "nsfw" not in tags
+                    and ascii_.find("img", {"class": "-blurred-image"}) is None
+                ):
                     ascii_safe.append(ascii_)
             else:
                 ascii_safe.append(ascii_)
@@ -149,7 +154,10 @@ class Ascii(command.BaseCommand):
         if safe:
             asciis = ascii_safe
 
-        return [ascii_.find("span", {"class": "-main-text"}).text for ascii_ in asciis[:max_result]]
+        return [
+            ascii_.find("span", {"class": "-main-text"}).text
+            for ascii_ in asciis[:max_result]
+        ]
 
     async def error_ascii(self, ctx):
         if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
@@ -160,7 +168,9 @@ class Ascii(command.BaseCommand):
 
     async def ascii_(self, ctx):
         options = {}
-        channel = await ctx.attrs.client.rest.fetch_channel(ctx.attrs.message.channel_id)
+        channel = await ctx.attrs.client.rest.fetch_channel(
+            ctx.attrs.message.channel_id
+        )
 
         if channel.is_nsfw:
             options.update({"safe": False})
