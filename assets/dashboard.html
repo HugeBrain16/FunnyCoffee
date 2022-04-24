@@ -90,6 +90,16 @@
                         <div class="mb-3 mt-3">
                             {% set cmdhelpInputElement = cmd.name ~ '_help' %}
                             {% set cmdAliasesInputElement = cmd.name ~ '_aliases' %}
+                            {% set cmdDisabled = cmd.name ~ '_disabled' %}
+                            {% if cmd.__disabled__ == True %}
+                                <input type="checkbox" class="form-check-input" value="" name="{{ cmdDisabled }}" id="{{ cmdDisabled }}" checked>
+                            {% else %}
+                                <input type="checkbox" class="form-check-input" value="" name="{{ cmdDisabled }}" id="{{ cmdDisabled }}">
+                            {% endif %}
+                            <label for="{{ cmdDisabled }}" class="form-check-label">
+                                Disabled
+                            </label>
+                            <br/>
                             <label for="{{ cmdhelpInputElement }}" class="form-label">Help/Description</label>
                             <input class="form-control" name="{{ cmdhelpInputElement }}" id="{{ cmdhelpInputElement }}" placeholder="enter help/description text" value="{{ cmd|attr('help') }}">
                             <label for="{{ cmdAliasesInputElement }}" class="form-label">Aliases</label>

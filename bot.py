@@ -273,6 +273,7 @@ class FunnyCoffee(hikari.GatewayBot):
                         current_command = self.commands[command_index]
                         cmd_help_input_element = cmd.name + "_help"
                         cmd_aliases_input_element = cmd.name + "_aliases"
+                        cmd_disabled = cmd.name + "_disabled"
                         helptext = flask.request.form[cmd_help_input_element]
                         aliases = [
                             alias.strip()
@@ -291,6 +292,11 @@ class FunnyCoffee(hikari.GatewayBot):
                             "__aliases__",
                             aliases,
                         )
+
+                        if cmd_disabled in flask.request.form:
+                            cmd.__disabled__ = True
+                        else:
+                            cmd.__disabled__ = False
 
                 config_updated = True
 
