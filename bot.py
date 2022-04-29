@@ -190,22 +190,28 @@ class FunnyCoffee(hikari.GatewayBot):
                     client = pymongo.MongoClient(os.getenv("MONGO_SRV"))
                 except pymongo.errors.ConfigurationError:
                     db_con_retry += 1
-                    logging.error(f"Couldn't connect to mongodb database, retrying... [{3 - db_con_retry} attempt(s) left]")
+                    logging.error(
+                        f"Couldn't connect to mongodb database, retrying... [{3 - db_con_retry} attempt(s) left]"
+                    )
                     if update_nameservers is False:
                         logging.info("Updating default dns resolver's nameservers...")
-                        dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+                        dns.resolver.default_resolver = dns.resolver.Resolver(
+                            configure=False
+                        )
                         dns.resolver.default_resolver.nameservers = [
-                            '9.9.9.9', # quad9
-                            '1.1.1.1', # cloudflare
-                            '8.8.8.8', # google
-                            '208.67.222.222', # opendns
+                            "9.9.9.9",  # quad9
+                            "1.1.1.1",  # cloudflare
+                            "8.8.8.8",  # google
+                            "208.67.222.222",  # opendns
                         ]
                         update_nameservers = True
                 else:
                     self.mongo_client = client
             else:
                 if self.mongo_client is None:
-                    logging.warning("Couldn't connect to mongodb database, some features may be unavailable.")
+                    logging.warning(
+                        "Couldn't connect to mongodb database, some features may be unavailable."
+                    )
                 else:
                     logging.info("Connected to mongodb database!")
 
