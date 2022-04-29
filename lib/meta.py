@@ -8,7 +8,7 @@ class DevType(Enum):
 
 
 class Version(Enum):
-    PATCH = 1
+    PATCH = 2
     MINOR = 4
     MAJOR = 0
     DEV = DevType.ALPHA
