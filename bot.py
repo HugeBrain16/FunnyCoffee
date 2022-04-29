@@ -13,6 +13,8 @@ import cmdtools
 import flask
 import psutil
 import lavasnek_rs
+import pymongo
+import dns.resolver
 
 from lib import utils
 from lib import meta
@@ -104,6 +106,7 @@ class FunnyCoffee(hikari.GatewayBot):
         self.webapp.logger = logging.getLogger("hikari.bot")
         self.lavalink = lavasnek_rs.Lavalink
         self.caches = cache.MemCacheManager()
+        self.mongo_client = None
 
         super().__init__(
             token=token,
@@ -176,6 +179,35 @@ class FunnyCoffee(hikari.GatewayBot):
 
         lavaclient = await lavalbuilder.build(LavalinkEventHandler(self))
         self.lavalink = lavaclient
+
+        if os.getenv("MONGO_SRV"):
+            db_con_retry = 0
+            update_nameservers = False
+
+            logging.info("Connecting to mongodb database...")
+            while self.mongo_client is None and db_con_retry < 3:
+                try:
+                    client = pymongo.MongoClient(os.getenv("MONGO_SRV"))
+                except pymongo.errors.ConfigurationError:
+                    db_con_retry += 1
+                    logging.error(f"Couldn't connect to mongodb database, retrying... [{3 - db_con_retry} attempt(s) left]")
+                    if update_nameservers is False:
+                        logging.info("Updating default dns resolver's nameservers...")
+                        dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
+                        dns.resolver.default_resolver.nameservers = [
+                            '9.9.9.9', # quad9
+                            '1.1.1.1', # cloudflare
+                            '8.8.8.8', # google
+                            '208.67.222.222', # opendns
+                        ]
+                        update_nameservers = True
+                else:
+                    self.mongo_client = client
+            else:
+                if self.mongo_client is None:
+                    logging.warning("Couldn't connect to mongodb database, some features may be unavailable.")
+                else:
+                    logging.info("Connected to mongodb database!")
 
     async def on_starting(self, event: hikari.StartingEvent):
         logging.info(f"Starting FunnyCoffee version v{meta.Version(0)}...")
