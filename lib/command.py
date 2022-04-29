@@ -12,6 +12,7 @@ class Cooldown:
     def set_interval(self, interval: int):
         self.interval = 0 if interval <= 0 else interval
 
+
 class BaseCommand(Command):
     __help__ = None
     __disabled__ = False
@@ -32,7 +33,7 @@ class BaseGroup(Group):
         for cmd in self.commands:
             if cmd.name == command.name or command.name in cmd.aliases:
                 if not cmd.__disabled__:
-                    author_id = attrs['message'].author.id
+                    author_id = attrs["message"].author.id
                     if author_id not in cmd._user_cooldown:
                         cmd._user_cooldown.update({author_id: 0})
                     for userid in cmd._user_cooldown:
@@ -44,7 +45,10 @@ class BaseGroup(Group):
                             return await super().run(command, attrs=attrs)
                         else:
                             if isinstance(cmd._cooldown_callback, Callback):
-                                await cmdtools.execute(command, cmd._cooldown_callback, attrs=attrs)
+                                await cmdtools.execute(
+                                    command, cmd._cooldown_callback, attrs=attrs
+                                )
+
 
 async def update_cooldown(commands: List[BaseGroup]):
     while True:
