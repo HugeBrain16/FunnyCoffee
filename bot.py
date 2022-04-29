@@ -20,6 +20,7 @@ from lib import utils
 from lib import meta
 from lib import webutil
 from lib import cache
+from lib import command as libcommand
 
 
 if os.name != "nt":
@@ -399,6 +400,7 @@ class FunnyCoffee(hikari.GatewayBot):
         self.loop.create_task(self.update_presence_task())
         self.loop.create_task(self.caches.update())
         self.loop.create_task(cache.update_cachedir(".cache"))
+        self.loop.create_task(libcommand.update_cooldown(self.commands))
 
     async def on_message(self, event: hikari.GuildMessageCreateEvent):
         if event.is_human:
