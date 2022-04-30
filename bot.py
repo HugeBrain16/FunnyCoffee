@@ -118,6 +118,7 @@ class FunnyCoffee(hikari.GatewayBot):
         self.subscribe(hikari.StartedEvent, self.on_started)
         self.subscribe(hikari.StartingEvent, self.on_starting)
         self.subscribe(hikari.ShardReadyEvent, self.on_ready)
+        self.subscribe(hikari.StoppingEvent, self.on_stopping)
 
     @property
     def config(self):
@@ -218,6 +219,10 @@ class FunnyCoffee(hikari.GatewayBot):
 
     async def on_starting(self, event: hikari.StartingEvent):
         logging.info(f"Starting FunnyCoffee version v{meta.Version(0)}...")
+
+    async def on_stopping(self, event: hikari.StoppingEvent):
+        if self.mongo_client:
+            self.mongo_client.close()
 
     async def on_started(self, event: hikari.StartedEvent):
         self.loop = asyncio.get_event_loop()
