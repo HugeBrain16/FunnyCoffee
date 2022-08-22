@@ -4,7 +4,7 @@ import datetime
 import os
 import shutil
 import pickle
-from typing import Any, Optional, List
+from typing import Any, List
 
 
 @attrs.define

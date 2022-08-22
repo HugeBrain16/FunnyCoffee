@@ -1,11 +1,9 @@
 import hikari
-import requests
 import cmdtools
 import datetime
 import random
 
-from typing import List
-from cmdtools.callback import Callback, ErrorCallback
+from cmdtools.callback import Callback
 from lib import utils
 from lib import meta
 from lib import command
