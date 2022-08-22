@@ -64,7 +64,7 @@ class Avatar(command.BaseCommand):
         if isinstance(ctx.error, hikari.NotFoundError):
             await ctx.attrs.message.respond("User not found!")
         else:
-            raise error
+            raise ctx.error
 
 
 @group.command()
@@ -108,7 +108,7 @@ class CmdDetail(command.BaseCommand):
             if ctx.error.option == "name":
                 await ctx.attrs.message.respond("Please provide the command name!")
         else:
-            raise error
+            raise ctx.error
 
     async def cmd(self, ctx):
         embed = hikari.Embed(title="Search Result", color=0x00FF00)
