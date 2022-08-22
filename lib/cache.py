@@ -4,7 +4,7 @@ import datetime
 import os
 import shutil
 import pickle
-from typing import Any, Optional, List
+from typing import Any, List
 
 
 @attrs.define
@@ -79,6 +79,9 @@ async def update_cachedir(cachedir: str):
             cache = get(cachedir, cdir)
 
             if cache:
+                if cache.expired_after <= 0:
+                    continue
+
                 if datetime.datetime.utcnow() >= cache.expiration:
                     remove(cachedir, cache.name)
 
@@ -121,6 +124,9 @@ class MemCacheManager:
 
         while True:
             for index, cache in enumerate(self.caches):
+                if cache.expired_after <= 0:
+                    continue
+
                 if datetime.datetime.utcnow() >= cache.expiration:
                     self.caches.remove(cache)
 

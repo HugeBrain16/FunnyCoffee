@@ -1,11 +1,9 @@
 import hikari
-import requests
 import cmdtools
 import datetime
 import random
 
-from typing import List
-from cmdtools.callback import Callback, ErrorCallback
+from cmdtools.callback import Callback
 from lib import utils
 from lib import meta
 from lib import command
@@ -64,7 +62,7 @@ class Avatar(command.BaseCommand):
         if isinstance(ctx.error, hikari.NotFoundError):
             await ctx.attrs.message.respond("User not found!")
         else:
-            raise error
+            raise ctx.error
 
 
 @group.command()
@@ -108,7 +106,7 @@ class CmdDetail(command.BaseCommand):
             if ctx.error.option == "name":
                 await ctx.attrs.message.respond("Please provide the command name!")
         else:
-            raise error
+            raise ctx.error
 
     async def cmd(self, ctx):
         embed = hikari.Embed(title="Search Result", color=0x00FF00)

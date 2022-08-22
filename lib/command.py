@@ -2,7 +2,7 @@ import asyncio
 import cmdtools
 from cmdtools.ext.command import Command, Group
 from cmdtools.callback import Callback
-from typing import List, Optional, Dict
+from typing import List, Optional
 
 
 class Cooldown:

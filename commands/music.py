@@ -202,7 +202,7 @@ class Play(command.BaseCommand):
 
         if not query_info.tracks:
             await ctx.attrs.message.respond(
-                f"Nothing found from search query:\n`{query}`."
+                f"Nothing found from search query:\n`{ctx.options.query}`."
             )
         else:
             try:
