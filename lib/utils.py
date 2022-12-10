@@ -64,7 +64,7 @@ def load_command(name: str):
 def get_commands() -> List[str]:
     """get command names from library"""
     return [
-        file.rsplit("/", 1)[1].rstrip(".py")
+        file.rsplit(os.sep, 1)[1].rstrip(".py")
         for file in glob(os.path.join("commands", "*.py"))
     ]
 
