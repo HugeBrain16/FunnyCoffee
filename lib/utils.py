@@ -1,9 +1,12 @@
-import os
 import importlib
+import importlib.util
 import json
-from cmdtools.ext.command import Group
+import os
+from glob import glob
 from typing import Iterable, List
 from urllib import parse as urlparse
+
+from cmdtools.ext.command import Group
 
 
 class ConfigEnv:
@@ -37,29 +40,33 @@ class ConfigEnv:
 
 def load_command(name: str):
     """load commands from library"""
-    for file in os.listdir("commands"):
-        if file.endswith(".py") and os.path.isfile("commands/" + file):
-            modname = file.rsplit(".py", 1)[0]
-            modpath = os.path.join("commands", modname).replace(os.sep, ".")
-            mod = importlib.import_module(modpath)
+    files = glob(os.path.join("commands", f"{name}.py"))
 
-            if hasattr(mod, "group") and name == modname:
-                return mod if isinstance(mod.group, Group) else None
+    if not files:
+        return None
+
+    # Use the importlib.util.find_spec function to get the module
+    # specification for the specified module.
+    spec = importlib.util.find_spec(f"commands.{name}")
+
+    if not spec.loader:
+        return None
+
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    if hasattr(mod, "group") and issubclass(getattr(mod, "group").__class__, Group):
+        return mod
+
+    return None
 
 
 def get_commands() -> List[str]:
     """get command names from library"""
-    cmds = []
-
-    for file in os.listdir("commands"):
-        if file.endswith(".py") and os.path.isfile("commands/" + file):
-            modname = file.rsplit(".py", 1)[0]
-            mod = load_command(modname)
-
-            if mod:
-                cmds.append(modname)
-
-    return cmds
+    return [
+        file.rsplit("/", 1)[1].rstrip(".py")
+        for file in glob(os.path.join("commands", "*.py"))
+    ]
 
 
 def mention_to_id(mention: str) -> int:
