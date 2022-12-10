@@ -110,6 +110,7 @@ class FunnyCoffee(hikari.GatewayBot):
         self.mongo_client = None
 
         super().__init__(
+            intents=hikari.Intents.ALL,
             token=token,
         )
 
