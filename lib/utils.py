@@ -63,17 +63,10 @@ def load_command(name: str):
 
 def get_commands() -> List[str]:
     """get command names from library"""
-    cmds = []
-
-    for file in os.listdir("commands"):
-        if file.endswith(".py") and os.path.isfile("commands/" + file):
-            modname = file.rsplit(".py", 1)[0]
-            mod = load_command(modname)
-
-            if mod:
-                cmds.append(modname)
-
-    return cmds
+    return [
+        file.rsplit("/", 1)[1].rstrip(".py")
+        for file in glob(os.path.join("commands", "*.py"))
+    ]
 
 
 def mention_to_id(mention: str) -> int:
