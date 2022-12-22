@@ -4,7 +4,6 @@ import datetime
 import random
 
 from cmdtools.callback import Callback
-from lib import utils
 from lib import meta
 from lib import command
 
@@ -78,15 +77,12 @@ class Help(command.BaseCommand):
         embed = hikari.Embed(title="Help", color=0xFFFFFF)
         embed.description = "Showing all available commands"
 
-        for command in utils.get_commands():
-            cmdobj = utils.load_command(command)
-
-            if cmdobj and hasattr(cmdobj, "PREFIX"):
-                embed.add_field(
-                    name=f"{command.capitalize().replace('_', ' ')}: {cmdobj.PREFIX}",
-                    value=", ".join([cmd.name for cmd in cmdobj.group.commands]),
-                    inline=True,
-                )
+        for command in ctx.attrs.client.commands:
+            embed.add_field(
+                name=f"{command.group.name.replace('_', ' ')}: {command.PREFIX}",
+                value=", ".join([cmd.name for cmd in command.group.commands]),
+                inline=True,
+            )
 
         await ctx.attrs.message.respond(embed=embed)
 
@@ -112,10 +108,8 @@ class CmdDetail(command.BaseCommand):
         embed = hikari.Embed(title="Search Result", color=0x00FF00)
         embed.set_author(name="Command Details")
 
-        for command in utils.get_commands():
-            mod = utils.load_command(command)
-
-            for cobj in mod.group.commands:
+        for command in ctx.attrs.client.commands:
+            for cobj in command.group.commands:
                 if ctx.options.name in cobj.name:
                     details = ""
 
@@ -126,10 +120,10 @@ class CmdDetail(command.BaseCommand):
                         details += "Disabled: **Yes**" + "\n"
                     else:
                         details += "Disabled: **No**" + "\n"
-                    details += f"Category: **{command.capitalize()}**" + "\n"
-                    if hasattr(mod, "PREFIX"):
-                        if isinstance(mod.PREFIX, str):
-                            details += f"Prefix: **{mod.PREFIX}**" + "\n"
+                    details += f"Category: **{command.group.name}**" + "\n"
+                    if hasattr(command, "PREFIX"):
+                        if isinstance(command.PREFIX, str):
+                            details += f"Prefix: **{command.PREFIX}**" + "\n"
 
                     if cobj.aliases:
                         details += f"Aliases: {', '.join(cobj.aliases)}" + "\n"
