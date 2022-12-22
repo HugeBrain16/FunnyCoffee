@@ -2,6 +2,7 @@ import importlib
 import importlib.util
 import json
 import os
+import re
 from glob import glob
 from typing import Iterable, List
 from urllib import parse as urlparse
@@ -112,3 +113,7 @@ def get_youtube_thumb(url: str):
 
 def load_config():
     return json.load(open("config.json", "r", encoding="UTF-8"))
+
+
+def get_mentions_ids(msg):
+    return re.findall("<@(?P<user>\d+)>|<#(?P<channel>\d+)>", msg)
