@@ -1,5 +1,3 @@
-"""lewd stuff ( ͡° ͜ʖ ͡°)..."""
-
 import requests
 import random
 from typing import List
