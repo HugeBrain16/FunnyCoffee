@@ -51,6 +51,8 @@ TOKEN=asdasdasidjoiajsdoij23-0iasidjoiajsd
 
 ### Setup Lavalink server
 
+check [this](https://lavalink.darrennathanael.com/) if u dont want to host ur own lavalink server, otherwise u can follow these steps
+
 make sure you have Java 13 or later installed.  
 Download Java 13 [here](https://adoptopenjdk.net/releases.html?variant=openjdk13&jvmVariant=hotspot) if you don't have it installed.  
 
