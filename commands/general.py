@@ -4,6 +4,7 @@ import datetime
 import random
 
 from cmdtools.callback import Callback
+from lib import utils
 from lib import meta
 from lib import command
 
@@ -32,9 +33,11 @@ class Avatar(command.BaseCommand):
         super().__init__(name="avatar")
 
     async def avatar(self, ctx):
-        if ctx.attrs.message.mentions.user_ids:
+        mention = utils.get_mentions_ids(ctx.attrs.message.content)
+
+        if mention:
             user = await ctx.attrs.client.rest.fetch_member(
-                ctx.attrs.message.guild_id, ctx.attrs.message.mentions.user_ids[0]
+                ctx.attrs.message.guild_id, mention[0][0]
             )
 
             if user:
@@ -197,9 +200,11 @@ class UserInfo(command.BaseCommand):
         return embed
 
     async def userinfo(self, ctx):
-        if ctx.attrs.message.mentions.user_ids:
+        mention = utils.get_mentions_ids(ctx.attrs.message.content)
+
+        if mention:
             member = await ctx.attrs.client.rest.fetch_member(
-                ctx.attrs.message.guild_id, ctx.attrs.message.mentions.user_ids[0]
+                ctx.attrs.message.guild_id, mention[0][0]
             )
 
             if member:
