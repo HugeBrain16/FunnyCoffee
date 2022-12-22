@@ -121,9 +121,7 @@ class CmdDetail(command.BaseCommand):
                     else:
                         details += "Disabled: **No**" + "\n"
                     details += f"Category: **{command.group.name}**" + "\n"
-                    if hasattr(command, "PREFIX"):
-                        if isinstance(command.PREFIX, str):
-                            details += f"Prefix: **{command.PREFIX}**" + "\n"
+                    details += f"Prefix: **{command.PREFIX}**" + "\n"
 
                     if cobj.aliases:
                         details += f"Aliases: {', '.join(cobj.aliases)}" + "\n"
