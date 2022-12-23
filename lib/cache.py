@@ -23,12 +23,10 @@ class Cache:
 
 def check_cache(cache: Cache):
     return all(
-        [
-            hasattr(cache, "name"),
-            hasattr(cache, "data"),
-            hasattr(cache, "expired_after"),
-            hasattr(cache, "expiration"),
-        ]
+        (
+            hasattr(cache, attr)
+            for attr in ("name", "data", "expired_after", "expiration")
+        )
     )
 
 
