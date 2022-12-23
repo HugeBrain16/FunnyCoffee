@@ -21,6 +21,17 @@ class Cache:
         )
 
 
+def check_cache(cache: Cache):
+    return all(
+        [
+            hasattr(cache, "name"),
+            hasattr(cache, "data"),
+            hasattr(cache, "expired_after"),
+            hasattr(cache, "expiration"),
+        ]
+    )
+
+
 def ensure_cachedir(cachedir: str):
     if not os.path.isdir(cachedir):
         os.makedirs(cachedir)
@@ -79,11 +90,15 @@ async def update_cachedir(cachedir: str):
             cache = get(cachedir, cdir)
 
             if cache:
-                if cache.expired_after <= 0:
-                    continue
+                if check_cache(cache):
+                    if cache.expired_after <= 0:
+                        continue
 
-                if datetime.datetime.utcnow() >= cache.expiration:
-                    remove(cachedir, cache.name)
+                    if datetime.datetime.utcnow() >= cache.expiration:
+                        remove(cachedir, cache.name)
+                else:
+                    if hasattr(cache, "name"):
+                        remove(cachedir, cache.name)
 
         await asyncio.sleep(0.1)
 
@@ -123,7 +138,7 @@ class MemCacheManager:
         """check for expired caches"""
 
         while True:
-            for index, cache in enumerate(self.caches):
+            for _, cache in enumerate(self.caches):
                 if cache.expired_after <= 0:
                     continue
 
