@@ -135,11 +135,21 @@ class Danbooru(command.BaseCommand):
             await ctx.attrs.message.respond("Post not found!")
             return
 
+        relpost = []
         if isinstance(post, list):
-            post = random.choice(post)
+            _post = random.choice(post)
+            relpost.extend(
+                [f"- {booru.__base}posts/{p.id}" for p in post if p != _post][:5]
+            )
+            post = _post
 
         embed = Embed()
-        embed.description = f"Tags: **{post.tag_string}**\n"
+        if relpost:
+            embed.description = "Related Posts:\n"
+            embed.description += "\n".join(relpost) + "\n\n"
+        else:
+            embed.description = ""
+        embed.description += f"Tags: **{post.tag_string if len(post.tag_string) < 128 else post.tag_string[:128] + '...'}**\n"
         if post.has_large:
             embed.set_image(post.large_file_url)
         else:
