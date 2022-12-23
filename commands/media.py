@@ -1,10 +1,11 @@
 import random
-from cmdtools.callback.option import OptionModifier
 
-from lib import zerochan
-from lib import rule34
-from lib import kitsu
-from lib import command
+from cmdtools.callback.option import OptionModifier
+from danbooru import Danbooru as Booru
+from hikari.embeds import Embed
+from requests.exceptions import ConnectionError
+
+from lib import command, kitsu, rule34, zerochan
 
 group = command.BaseGroup("Media")
 
@@ -98,3 +99,56 @@ class Anime(command.BaseCommand):
 
     async def error_anime(self, ctx):
         raise ctx.error
+
+
+@group.command()
+class Danbooru(command.BaseCommand):
+    __help__ = "Anime image board"
+
+    def __init__(self):
+        super().__init__(name="danbooru")
+
+        self.add_option("tags", modifier=OptionModifier.ConsumeRest, default="")
+
+    async def danbooru(self, ctx):
+        channel = await ctx.attrs.client.rest.fetch_channel(
+            ctx.attrs.message.channel_id
+        )
+
+        if channel.is_nsfw:
+            booru = Booru()
+        else:
+            booru = Booru(host="safebooru")
+
+        try:
+            if ctx.options.tags:
+                post = booru.searchs(tags=ctx.options.tags)
+            else:
+                post = booru.post_random()
+        except ConnectionError:
+            await ctx.attrs.message.respond(
+                "Failed to get post!, connection timed out."
+            )
+            return
+
+        if not post:
+            await ctx.attrs.message.respond("Post not found!")
+            return
+
+        if isinstance(post, list):
+            post = random.choice(post)
+
+        embed = Embed()
+        embed.description = f"Tags: **{post.tag_string}**\n"
+        if post.has_large:
+            embed.set_image(post.large_file_url)
+        else:
+            embed.set_image(post.file_url)
+        embed.set_footer(f"{booru.__base}posts/{post.id} • {post.source}")
+        embed.set_author(
+            name="Danbooru",
+            icon="https://danbooru.donmai.us/packs/static/danbooru-logo-128x128-ea111b6658173e847734.png",
+        )
+        embed.color = 0x009BE6
+
+        await ctx.attrs.message.respond(embed=embed)

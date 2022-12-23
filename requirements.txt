@@ -7,3 +7,4 @@ psutil
 lavasnek_rs
 pymongo
 dnspython
+danbooru
