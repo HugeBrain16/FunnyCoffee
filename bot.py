@@ -235,7 +235,9 @@ class FunnyCoffee(hikari.GatewayBot):
 
             if not hasattr(cmd, "PREFIX"):
                 warnmsg = f"The command module has been found, but no prefix is defined: {command}"
-                warnmsg += f"\n  The module contains {len(cmd.group.commands)} command(s)"
+                warnmsg += (
+                    f"\n  The module contains {len(cmd.group.commands)} command(s)"
+                )
                 warnmsg += "\nTo load the command module, define the PREFIX variable in the global scope."
                 logging.warning(warnmsg)
             else:
@@ -412,9 +414,11 @@ class FunnyCoffee(hikari.GatewayBot):
         if event.is_human:
             message = event.message
 
-            if re.search(r"funny\s*coffee", message.content, flags=re.IGNORECASE):
-                await message.respond(random.choice(["hello", "yo", "hi", "hey"]))
-            elif message.content.strip() == f"<@!{self.get_me().id}>":
+            if re.search(
+                rf"^(funny\s*coffee|<@{self.get_me().id}>)$",
+                message.content,
+                flags=re.IGNORECASE,
+            ):
                 await message.respond(random.choice(["hello", "yo", "hi", "hey"]))
             else:
                 for cmd in self.commands:
