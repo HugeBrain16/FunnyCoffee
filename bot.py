@@ -234,14 +234,14 @@ class FunnyCoffee(hikari.GatewayBot):
             cmd = utils.load_command(command)
 
             if not hasattr(cmd, "PREFIX"):
-                warnmsg = f"Command module exists, but no prefix defined: {command}"
-                warnmsg += f"\n  Module contains {len(cmd.group.commands)} command(s)"
-                warnmsg += "\nTo load the command module, please define PREFIX variable in global scope."
+                warnmsg = f"The command module has been found, but no prefix is defined: {command}"
+                warnmsg += f"\n  The module contains {len(cmd.group.commands)} command(s)"
+                warnmsg += "\nTo load the command module, define the PREFIX variable in the global scope."
                 logging.warning(warnmsg)
             else:
                 self.commands.append(cmd)
                 loadcmdmsg.append(f"  - {command}")
-        loadcmdmsg.append(f"{len(loadcmdmsg)} Command module(s) found:")
+        loadcmdmsg.append(f"loaded {len(loadcmdmsg)} Command module(s):")
         logging.info("\n".join(loadcmdmsg[::-1]))
 
         config = {"load_dotenv": False, "use_reloader": False}
