@@ -37,7 +37,7 @@ class Rule34(command.BaseCommand):
     __aliases__ = [
         "r34",
     ]
-    __help__ = "interesting random image."
+    __help__ = "rulel34 image board."
 
     def __init__(self):
         super().__init__(name="rule34")
