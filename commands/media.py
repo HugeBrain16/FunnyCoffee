@@ -115,12 +115,12 @@ class Danbooru(command.BaseCommand):
             ctx.attrs.message.channel_id
         )
 
-        if channel.is_nsfw:
-            booru = Booru()
-        else:
-            booru = Booru(host="safebooru")
-
         try:
+            if channel.is_nsfw:
+                booru = Booru()
+            else:
+                booru = Booru(host="safebooru")
+
             if ctx.options.tags:
                 post = booru.searchs(tags=ctx.options.tags)
             else:
