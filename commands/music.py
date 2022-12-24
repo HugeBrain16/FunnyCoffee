@@ -1,10 +1,12 @@
-import hikari
+import os
+
 import cmdtools
+import hikari
 import lavasnek_rs
 from cmdtools.callback.option import OptionModifier
+from lyricsgenius import Genius
 
-from lib import command
-from lib import cache
+from lib import cache, command
 
 group = command.BaseGroup("Music")
 PREFIX = "m+"
@@ -315,3 +317,47 @@ class Queue(command.BaseCommand):
             await self.clear_queue(ctx.attrs.client, ctx.attrs.message)
         else:
             await ctx.attrs.message.respond(f"Invalid action: `{action}`")
+
+
+@group.command()
+class Lyrics(command.BaseCommand):
+    __help__ = "Search for lyrics from Genius.com"
+
+    def __init__(self):
+        super().__init__(name="lyrics")
+
+        self.add_option("keywords", modifier=OptionModifier.ConsumeRest)
+
+    async def error_lyrics(self, ctx):
+        if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
+            if ctx.error.option == "keywords":
+                await ctx.attrs.message.respond(
+                    "Please enter the keywords you want to use to search."
+                )
+        else:
+            raise ctx.error
+
+    async def lyrics(self, ctx):
+        if "GENIUS_API" in os.environ:
+            g = Genius(os.environ["GENIUS_API"])
+            g.verbose = False
+            g.remove_section_header = True
+
+            song = g.search_song(ctx.options.keywords)
+
+            if song:
+                embed = hikari.embeds.Embed()
+                embed.title = song.full_title
+                embed.description = song.lyrics
+                embed.set_thumbnail(song.song_art_image_url)
+                embed.set_footer(
+                    text="Genius lyrics",
+                    icon="https://images.genius.com/dacc8165080a6ba33911bdda2b99437d.114x114x1.png",
+                )
+                embed.color = 0xFFFF00
+
+                await ctx.attrs.message.respond(embed=embed)
+            else:
+                await ctx.attrs.message.respond("Unable to fetch lyrics.")
+        else:
+            await ctx.attrs.message.respond("this feature is unavailabe.")

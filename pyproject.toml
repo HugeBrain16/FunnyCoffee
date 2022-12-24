@@ -19,6 +19,7 @@ lavasnek_rs = {version = "^0.1.0-alpha.3", allow-prereleases = true}
 pymongo = "^4.1.1"
 dnspython = "^2.2.1"
 danbooru = "^0.0.7"
+lyricsgenius = "^3.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
