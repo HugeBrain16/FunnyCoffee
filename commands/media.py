@@ -12,15 +12,9 @@ group = command.BaseGroup("Media")
 PREFIX = "m!"
 
 
-@group.command()
+@group.command("zerochan", aliases=["zchan"])
 class Zerochan(command.BaseCommand):
-    __aliases__ = [
-        "zchan",
-    ]
     __help__ = "Get a random anime picture."
-
-    def __init__(self):
-        super().__init__(name="zerochan")
 
     async def zerochan(self, ctx):
         img = zerochan.get_random()
@@ -32,17 +26,10 @@ class Zerochan(command.BaseCommand):
         raise ctx.error
 
 
-@group.command()
+@group.add_option("query", modifier=OptionModifier.ConsumeRest, default="")
+@group.command("rule34", aliases=["r34"])
 class Rule34(command.BaseCommand):
-    __aliases__ = [
-        "r34",
-    ]
     __help__ = "rule34 image board."
-
-    def __init__(self):
-        super().__init__(name="rule34")
-
-        self.add_option("query", modifier=OptionModifier.ConsumeRest, default="")
 
     async def rule34(self, ctx):
         sendtip = False
@@ -77,14 +64,10 @@ class Rule34(command.BaseCommand):
         raise ctx.error
 
 
-@group.command()
+@group.add_option("query", modifier=OptionModifier.ConsumeRest, default="")
+@group.command("anime")
 class Anime(command.BaseCommand):
     __help__ = "Search for anime"
-
-    def __init__(self):
-        super().__init__(name="anime")
-
-        self.add_option("query", modifier=OptionModifier.ConsumeRest, default="")
 
     async def anime(self, ctx):
         if ctx.options.query:
@@ -101,14 +84,10 @@ class Anime(command.BaseCommand):
         raise ctx.error
 
 
-@group.command()
+@group.add_option("tags", modifier=OptionModifier.ConsumeRest, default="")
+@group.command("danbooru")
 class Danbooru(command.BaseCommand):
     __help__ = "Anime image board"
-
-    def __init__(self):
-        super().__init__(name="danbooru")
-
-        self.add_option("tags", modifier=OptionModifier.ConsumeRest, default="")
 
     async def danbooru(self, ctx):
         channel = await ctx.attrs.client.rest.fetch_channel(

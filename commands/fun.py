@@ -12,12 +12,9 @@ group = command.BaseGroup("Fun")
 PREFIX = "f+"
 
 
-@group.command()
+@group.command("dice")
 class Dice(command.BaseCommand):
     __help__ = "Roll a dice"
-
-    def __init__(self):
-        super().__init__(name="dice")
 
     async def dice(self, ctx):
         dice = random.randint(1, 6)
@@ -25,12 +22,9 @@ class Dice(command.BaseCommand):
         await ctx.attrs.message.respond(f"Your dice is **{dice}**")
 
 
-@group.command()
+@group.command("joke")
 class Joke(command.BaseCommand):
     __help__ = "Funny jokes"
-
-    def __init__(self):
-        super().__init__(name="joke")
 
     async def joke(self, ctx):
         retries = 0
@@ -54,14 +48,12 @@ class Joke(command.BaseCommand):
                 await ctx.attrs.message.respond("Error fetching joke!")
 
 
-@group.command()
+@group.command("8ball", aliases=["magic8ball", "m8ball"])
 class Magic8Ball(command.BaseCommand):
-    __aliases__ = ["magic8ball", "m8ball"]
     __help__ = "a fortune-telling ball"
 
-    def __init__(self):
-        super().__init__(name="8ball")
-
+    def __init__(self, name):
+        super().__init__(name)
         self._callback = Callback(self._8ball)
         self._callback.errcall = ErrorCallback(self.error_8ball)
 
@@ -115,12 +107,12 @@ class Magic8Ball(command.BaseCommand):
         await ctx.attrs.message.respond(embed=embed)
 
 
-@group.command()
+@group.command("ascii")
 class Ascii(command.BaseCommand):
     __help__ = "some kind of twitch ascii art copypasta"
 
-    def __init__(self):
-        super().__init__(name="ascii")
+    def __init__(self, name):
+        super().__init__(name)
 
         self._callback = Callback(self.ascii_)
         self._callback.errcall = ErrorCallback(self.error_ascii)

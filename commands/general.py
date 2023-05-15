@@ -12,12 +12,9 @@ group = command.BaseGroup("General")
 PREFIX = "fc!"
 
 
-@group.command()
+@group.command("ping")
 class Ping(command.BaseCommand):
     __help__ = "get latency"
-
-    def __init__(self):
-        super().__init__(name="ping")
 
     async def ping(self, ctx):
         await ctx.attrs.message.respond(
@@ -25,12 +22,9 @@ class Ping(command.BaseCommand):
         )
 
 
-@group.command()
+@group.command("avatar")
 class Avatar(command.BaseCommand):
     __help__ = "Show user's avatar"
-
-    def __init__(self):
-        super().__init__(name="avatar")
 
     async def avatar(self, ctx):
         mention = utils.get_mentions_ids(ctx.attrs.message.content)
@@ -67,12 +61,12 @@ class Avatar(command.BaseCommand):
             raise ctx.error
 
 
-@group.command()
+@group.command("help")
 class Help(command.BaseCommand):
     __help__ = "Show help"
 
-    def __init__(self):
-        super().__init__(name="help")
+    def __init__(self, name):
+        super().__init__(name)
 
         self._callback = Callback(self.__help)
 
@@ -90,15 +84,10 @@ class Help(command.BaseCommand):
         await ctx.attrs.message.respond(embed=embed)
 
 
-@group.command()
+@group.add_option("name")
+@group.command("cmd", aliases=["searchcmd", "findcmd"])
 class CmdDetail(command.BaseCommand):
-    __aliases__ = ["searchcmd", "findcmd"]
     __help__ = "Search for commands and the details"
-
-    def __init__(self):
-        super().__init__(name="cmd")
-
-        self.add_option("name")
 
     async def error_cmd(self, ctx):
         if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
@@ -134,15 +123,9 @@ class CmdDetail(command.BaseCommand):
         await ctx.attrs.message.respond(embed=embed)
 
 
-@group.command()
+@group.command("info", aliases=["botinfo"])
 class Info(command.BaseCommand):
-    __aliases__ = [
-        "botinfo",
-    ]
     __help__ = "Get bot details"
-
-    def __init__(self):
-        super().__init__(name="info")
 
     async def info(self, ctx):
         embed = hikari.Embed(title="FunnyCoffee", color=0x00FFFF)
@@ -162,16 +145,9 @@ class Info(command.BaseCommand):
         await ctx.attrs.message.respond(embed=embed)
 
 
-@group.command()
+@group.command("userinfo", aliases=["uinfo", "user"])
 class UserInfo(command.BaseCommand):
-    __aliases__ = [
-        "uinfo",
-        "user",
-    ]
     __help__ = "Get user details"
-
-    def __init__(self):
-        super().__init__(name="userinfo")
 
     def get_detail(self, member: hikari.Member):
         embed = hikari.Embed()
@@ -224,15 +200,9 @@ class UserInfo(command.BaseCommand):
             raise ctx.error
 
 
-@group.command()
+@group.command("guildinfo", aliases=["serverinfo"])
 class GuildInfo(command.BaseCommand):
-    __aliases__ = [
-        "serverinfo",
-    ]
     __help__ = "Get guild/server info"
-
-    def __init__(self):
-        super().__init__(name="guildinfo")
 
     async def guildinfo(self, ctx):
         guild = await ctx.attrs.client.rest.fetch_guild(ctx.attrs.message.guild_id)
