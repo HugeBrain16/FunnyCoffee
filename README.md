@@ -5,8 +5,7 @@ basically batchest v2 cuz most codes are recycled from [BatChest](https://github
 
 ## How to run
 
-you can execute this [install script](https://raw.githubusercontent.com/HugeBrain16/FunnyCoffee/scripts/install.sh) to setup FunnyCoffee,  
-**[Rust](https://www.rust-lang.org/tools/install)** is required for building [lavasnek_rs](https://github.com/vicky5124/lavasnek_rs).
+you can execute this [install script](https://raw.githubusercontent.com/HugeBrain16/FunnyCoffee/scripts/install.sh) to setup FunnyCoffee.
 
 otherwise, you can follow these steps.
 
@@ -54,11 +53,11 @@ TOKEN=asdasdasidjoiajsdoij23-0iasidjoiajsd
 check [this](https://lavalink.darrennathanael.com/) if u dont want to host ur own lavalink server, otherwise u can follow these steps
 
 make sure you have Java 13 or later installed.  
-Download Java 13 [here](https://adoptopenjdk.net/releases.html?variant=openjdk13&jvmVariant=hotspot) if you don't have it installed.  
+Download Java 13 [here](https://adoptopenjdk.net/releases.html?variant=openjdk13&jvmVariant=hotspot) if you don't have it installed.
 
 1). Download **Lavalink.jar** file [here](https://github.com/freyacodes/Lavalink/releases/latest)  
 2). Create new configuration file with the name **application.yml**, make sure to put the application config file alongside the **Lavalink.jar** file.  
-3). Edit the **application.yml** and paste the content of this [example config](https://github.com/freyacodes/Lavalink/blob/master/LavalinkServer/application.yml.example)  
+3). Edit the **application.yml** and paste the content of this [example config](https://github.com/freyacodes/Lavalink/blob/master/LavalinkServer/application.yml.example)
 
 **NOTE:** if you changed the password in the **application.yml** file, you have to edit your `.env` file, or your environment variables.  
 set a new key named **LAVALINK_PASSWORD** and set the value to your lavalink server password, ex: `LAVALINK_PASSWORD=youshallnotpass`  

@@ -1,27 +1,24 @@
-import os
-import re
-import json
-import random
-import datetime
-import logging
 import asyncio
+import datetime
 import functools
+import json
+import logging
+import os
+import random
+import re
 import string
 
-import hikari
 import cmdtools
-import flask
-import psutil
-import lavasnek_rs
-import pymongo
 import dns.resolver
+import flask
+import hikari
+import lavalink
+import psutil
+import pymongo
 
-from lib import utils
-from lib import meta
-from lib import webutil
 from lib import cache
 from lib import command as libcommand
-
+from lib import meta, utils, webutil
 
 if os.name != "nt":
     try:
@@ -37,59 +34,47 @@ class LavalinkEventHandler:
     def __init__(self, client: hikari.GatewayBot):
         self.client = client
 
-    async def track_start(
-        self, lavalink: lavasnek_rs.Lavalink, event: lavasnek_rs.TrackStart
-    ):
-        node = await lavalink.get_guild_node(event.guild_id)
+    @lavalink.listener(lavalink.TrackStartEvent)  # type: ignore
+    async def track_start(self, event: lavalink.TrackStartEvent):
+        embed = hikari.Embed()
+        embed.color = 0xFFFFFF
+        embed.url = event.track.uri
+        embed.title = event.track.title
 
-        if node:
-            if node.now_playing:
-                track = node.now_playing.track
+        embed.set_author(name="Now playing...")
+        if utils.get_youtube_thumb(event.track.uri):
+            embed.set_thumbnail(utils.get_youtube_thumb(event.track.uri))
 
-                embed = hikari.Embed()
-                embed.color = 0xFFFFFF
-                embed.url = track.info.uri
-                embed.title = track.info.title
+        member = await self.client.rest.fetch_member(
+            event.player.guild_id, event.track.requester
+        )
 
-                embed.set_author(name="Now playing...")
-                if utils.get_youtube_thumb(track.info.uri):
-                    embed.set_thumbnail(utils.get_youtube_thumb(track.info.uri))
-                if node.now_playing.requester:
-                    member = await self.client.rest.fetch_member(
-                        event.guild_id, node.now_playing.requester
-                    )
+        if member:
+            embed.set_footer(text=f"Requested by {member.nickname or member.username}")
 
-                    if member:
-                        embed.set_footer(
-                            text=f"Requested by {member.nickname or member.username}"
-                        )
+        await self.client.rest.create_message(
+            event.track.extra["request_channel_id"], embed=embed
+        )
 
-                node_data = node.get_data()
+    @lavalink.listener(lavalink.TrackEndEvent)  # type: ignore
+    async def track_finish(self, event: lavalink.TrackEndEvent):
+        logging.info(f"Track finished on guild: {event.player.guild_id}")
 
-                if isinstance(node_data, dict):
-                    await self.client.rest.create_message(
-                        node_data["request_channel_id"], embed=embed
-                    )
+    @lavalink.listener(lavalink.TrackExceptionEvent)  # type: ignore
+    async def track_exception(self, event: lavalink.TrackExceptionEvent):
+        logging.warning(f"Track caught an exception on guild: {event.player.guild_id}")
 
-    async def track_finish(
-        self, lavalink: lavasnek_rs.Lavalink, event: lavasnek_rs.TrackFinish
-    ):
-        logging.info(f"Track finished on guild: {event.guild_id}")
+        player = self.client.lavalink.player_manager.get(event.player.guild_id)
 
-    async def track_exception(
-        self, lavalink: lavasnek_rs.Lavalink, event: lavasnek_rs.TrackException
-    ):
-        logging.warning(f"Track caught an exception on guild: {event.guild_id}")
+        if isinstance(player, lavalink.DefaultPlayer):
+            if not player.is_playing and not player.queue:
+                await player.stop()
+            else:
+                await player.skip()
 
-        skip = await lavalink.skip(event.guild_id)
-        node = await lavalink.get_guild_node(event.guild_id)
-
-        if not node:
-            return
-
-        if skip:
-            if not node.queue and not node.now_playing:
-                await lavalink.stop(event.guild_id)
+    @lavalink.listener(lavalink.QueueEndEvent)  # type: ignore
+    async def queue_finish(self, event: lavalink.QueueEndEvent):
+        logging.info(f"Queue finished on guild: {event.player.guild_id}")
 
 
 class FunnyCoffee(hikari.GatewayBot):
@@ -105,7 +90,7 @@ class FunnyCoffee(hikari.GatewayBot):
             [random.choice(string.printable.strip()) for _ in range(16)]
         )
         self.webapp.logger = logging.getLogger("hikari.bot")
-        self.lavalink = lavasnek_rs.Lavalink
+        self.lavalink = lavalink.Client
         self.caches = cache.MemCacheManager()
         self.mongo_client = None
 
@@ -120,6 +105,8 @@ class FunnyCoffee(hikari.GatewayBot):
         self.subscribe(hikari.StartingEvent, self.on_starting)
         self.subscribe(hikari.ShardReadyEvent, self.on_ready)
         self.subscribe(hikari.StoppingEvent, self.on_stopping)
+        self.subscribe(hikari.VoiceServerUpdateEvent, self.voice_server_update)
+        self.subscribe(hikari.VoiceStateUpdateEvent, self.voice_state_update)
 
     @property
     def config(self):
@@ -160,28 +147,53 @@ class FunnyCoffee(hikari.GatewayBot):
                 await presence
                 await asyncio.sleep(60 * 5)
 
-    async def on_ready(self, event: hikari.ShardReadyEvent):
-        lavalbuilder = lavasnek_rs.LavalinkBuilder(event.my_user.id, os.getenv("TOKEN"))
-        lavalbuilder = lavalbuilder.set_host(
-            os.getenv("LAVALINK_HOSTNAME", "127.0.0.1")
-        )
-        lavalport = 2333
-        _lavalport = os.getenv("LAVALINK_PORT", lavalport)
+    async def voice_server_update(self, event: hikari.VoiceServerUpdateEvent):
+        data = {
+            "t": "VOICE_SERVER_UPDATE",
+            "d": {
+                "guild_id": event.guild_id,
+                "endpoint": event.endpoint[6:],  # get rid of wss://
+                "token": event.token,
+            },
+        }
 
-        if isinstance(_lavalport, str):
-            if _lavalport.strip().isdigit():
-                lavalport = int(_lavalport)
+        await self.lavalink.voice_update_handler(data)
+
+    async def voice_state_update(self, event: hikari.VoiceStateUpdateEvent):
+        data = {
+            "t": "VOICE_STATE_UPDATE",
+            "d": {
+                "guild_id": event.state.guild_id,
+                "user_id": event.state.user_id,
+                "channel_id": event.state.channel_id,
+                "session_id": event.state.session_id,
+            },
+        }
+
+        await self.lavalink.voice_update_handler(data)
+
+    async def on_ready(self, event: hikari.ShardReadyEvent):
+        lvport = 2333
+        _lvport = os.getenv("LAVALINK_PORT", lvport)
+
+        if isinstance(_lvport, str):
+            if _lvport.strip().isdigit():
+                lvport = int(_lvport)
             else:
                 logging.warn(
-                    f"Environment 'LAVALINK_PORT' with value of '{_lavalport}' is not a digit string, falling back to default value: {lavalport}"
+                    f"Environment 'LAVALINK_PORT' with value of '{_lvport}' is not a digit string, falling back to default value: {lvport}"
                 )
 
-        lavalbuilder = lavalbuilder.set_port(lavalport)
-        if os.getenv("LAVALINK_PASSWORD"):
-            lavalbuilder = lavalbuilder.set_password(os.getenv("LAVALINK_PASSWORD"))
+        lvclient = lavalink.Client(event.my_user.id)
+        lvclient.add_node(
+            host=os.getenv("LAVALINK_HOSTNAME", "127.0.0.1"),
+            port=lvport,
+            password=os.getenv("LAVALINK_PASSWORD", "youshallnotpass"),
+            region="us",
+        )
 
-        lavaclient = await lavalbuilder.build(LavalinkEventHandler(self))
-        self.lavalink = lavaclient
+        lvclient.add_event_hooks(LavalinkEventHandler(self))
+        self.lavalink = lvclient
 
         if os.getenv("MONGO_SRV"):
             db_con_retry = 0
