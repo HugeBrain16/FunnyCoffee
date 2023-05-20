@@ -4,7 +4,7 @@ beautifulsoup4
 cmdtools-py>=3.0.3
 Flask>=2.0.0
 psutil
-lavasnek_rs
+lavalink
 pymongo
 dnspython
 danbooru

@@ -1,8 +1,11 @@
+import ctypes
+import ctypes
 import os
+import re
 
 import cmdtools
 import hikari
-import lavasnek_rs
+import lavalink
 from cmdtools.callback.option import OptionModifier
 from lyricsgenius import Genius
 
@@ -16,31 +19,21 @@ async def join_voice_channel(message, client):
     voice_state = client.cache.get_voice_state(message.guild_id, message.author.id)
 
     if not voice_state:
-        await message.respond("You're not connected to a voice channel!")
-        return None
+        return await message.respond("You're not connected to a voice channel!")
 
     channel_id = voice_state.channel_id
 
     if not channel_id:
-        await message.respond("You're not connected to a voice channel!")
-        return None
+        return await message.respond("You're not connected to a voice channel!")
 
-    try:
-        coninfo = await client.lavalink.join(message.guild_id, channel_id)
-    except TimeoutError:
-        await message.respond("Couldn't connect to voice channel.")
-        return None
-
-    await client.lavalink.create_session(coninfo)
+    client.lavalink.player_manager.create(guild_id=message.guild_id)
+    await client.update_voice_state(message.guild_id, channel_id, self_deaf=True)
     return channel_id
 
 
-@group.command()
+@group.command("join")
 class Join(command.BaseCommand):
     __help__ = "Join a voice channel"
-
-    def __init__(self):
-        super().__init__(name="join")
 
     async def join(self, ctx):
         bot_voice_state = ctx.attrs.client.cache.get_voice_state(
@@ -56,12 +49,9 @@ class Join(command.BaseCommand):
             await ctx.attrs.message.respond("I'm in a voice channel!")
 
 
-@group.command()
+@group.command("leave")
 class Leave(command.BaseCommand):
     __help__ = "Leaves the voice channel if connected."
-
-    def __init__(self):
-        super().__init__(name="leave")
 
     async def leave(self, ctx):
         bot_voice_state = ctx.attrs.client.cache.get_voice_state(
@@ -74,14 +64,17 @@ class Leave(command.BaseCommand):
         if bot_voice_state:
             if user_voice_state:
                 if bot_voice_state.channel_id == user_voice_state.channel_id:
-                    await ctx.attrs.client.lavalink.destroy(ctx.attrs.message.guild_id)
-                    await ctx.attrs.client.lavalink.leave(ctx.attrs.message.guild_id)
-
-                    await ctx.attrs.client.lavalink.remove_guild_node(
+                    player = ctx.attrs.client.lavalink.player_manager.get(
                         ctx.attrs.message.guild_id
                     )
-                    await ctx.attrs.client.lavalink.remove_guild_from_loops(
-                        ctx.attrs.message.guild_id
+
+                    if isinstance(player, lavalink.DefaultPlayer):
+                        player.queue.clear()
+                        await player.stop()
+                        player.channel_id = None
+
+                    await ctx.attrs.client.update_voice_state(
+                        ctx.attrs.message.guild_id, None
                     )
 
                     await ctx.attrs.message.add_reaction("👋")
@@ -97,188 +90,205 @@ class Leave(command.BaseCommand):
             await ctx.attrs.message.respond("I'm not in a voice channel!")
 
 
-@group.command()
+@group.command("stop")
 class Stop(command.BaseCommand):
     __help__ = "Stop current song from playing."
 
-    def __init__(self):
-        super().__init__(name="stop")
-
     async def stop(self, ctx):
-        node = await ctx.attrs.client.lavalink.get_guild_node(
+        player = ctx.attrs.client.lavalink.player_manager.get(
             ctx.attrs.message.guild_id
         )
 
-        if node.now_playing:
-            await ctx.attrs.client.lavalink.stop(ctx.attrs.message.guild_id)
+        if not isinstance(player, lavalink.DefaultPlayer):
+            return await ctx.attrs.message.respond("Invalid opperation.")
+
+        if player.is_playing and isinstance(player, lavalink.DefaultPlayer):
+            await player.stop()
             await ctx.attrs.message.add_reaction("🛑")
         else:
             await ctx.attrs.message.respond("I'm not playing anything right now.")
 
 
-@group.command()
+@group.command("pause")
 class Pause(command.BaseCommand):
     __help__ = "Pause current song."
 
-    def __init__(self):
-        super().__init__(name="pause")
-
     async def pause(self, ctx):
-        node = await ctx.attrs.client.lavalink.get_guild_node(
+        player = ctx.attrs.client.lavalink.player_manager.get(
             ctx.attrs.message.guild_id
         )
 
-        if not node.is_paused:
-            await ctx.attrs.client.lavalink.pause(ctx.attrs.message.guild_id)
+        if not isinstance(player, lavalink.DefaultPlayer):
+            return await ctx.attrs.message.respond("Invalid opperation.")
+
+        if not player.paused:
+            await player.set_pause(True)
             await ctx.attrs.message.add_reaction("⏸")
         else:
             await ctx.attrs.message.respond("Song is currently paused!")
 
 
-@group.command()
+@group.command("resume")
 class Resume(command.BaseCommand):
     __help__ = "Resume current paused song."
 
-    def __init__(self):
-        super().__init__(name="resume")
-
     async def resume(self, ctx):
-        node = await ctx.attrs.client.lavalink.get_guild_node(
+        player = ctx.attrs.client.lavalink.player_manager.get(
             ctx.attrs.message.guild_id
         )
 
-        if node.is_paused:
-            await ctx.attrs.client.lavalink.resume(ctx.attrs.message.guild_id)
+        if not isinstance(player, lavalink.DefaultPlayer):
+            return await ctx.attrs.message.respond("Invalid opperation.")
+
+        if player.paused:
+            await player.set_pause(False)
             await ctx.attrs.message.add_reaction("▶")
         else:
             await ctx.attrs.message.respond("Song is currently not paused!")
 
 
-@group.command()
+@group.command("skip")
 class Skip(command.BaseCommand):
     __help__ = "Skip currently playing song."
 
-    def __init__(self):
-        super().__init__(name="skip")
-
     async def skip(self, ctx):
-        skip = await ctx.attrs.client.lavalink.skip(ctx.attrs.message.guild_id)
-        node = await ctx.attrs.client.lavalink.get_guild_node(
+        player = ctx.attrs.client.lavalink.player_manager.get(
             ctx.attrs.message.guild_id
         )
 
-        if not skip or not node:
+        if not isinstance(player, lavalink.DefaultPlayer):
+            return await ctx.attrs.message.respond("Invalid opperation.")
+
+        if not player.queue and not player.is_playing:
             await ctx.attrs.message.respond("Nothing to skip.")
         else:
-            if not node.queue:
-                await ctx.attrs.client.lavalink.stop(ctx.attrs.message.guild_id)
-
+            await player.skip()
             await ctx.attrs.message.add_reaction("⏭")
 
 
-@group.command()
+@group.command("shuffle")
+class Shuffle(command.BaseCommand):
+    async def shuffle(self, ctx):
+        player = ctx.attrs.client.lavalink.player_manager.get(
+            ctx.attrs.message.guild_id
+        )
+
+        player.set_shuffle(not player.shuffle)
+        await ctx.attrs.message.respond(f"Shuffle: {'ON' if player.shuffle else 'OFF'}")
+
+
+@group.add_option("query", modifier=OptionModifier.ConsumeRest)
+@group.command("play")
 class Play(command.BaseCommand):
     __help__ = "Play song or add song to queue."
-
-    def __init__(self):
-        super().__init__(name="play")
-
-        self.add_option("query", modifier=OptionModifier.ConsumeRest)
 
     async def error_play(self, ctx):
         if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
             if ctx.error.option == "query":
                 await ctx.attrs.message.respond("Search query cannot be empty!")
+        else:
+            raise ctx.error
 
     async def play(self, ctx):
-        lavacon = ctx.attrs.client.lavalink.get_guild_gateway_connection_info(
+        query = ctx.options.query
+        player = ctx.attrs.client.lavalink.player_manager.get(
             ctx.attrs.message.guild_id
         )
 
-        if not lavacon:
-            await join_voice_channel(ctx.attrs.message, ctx.attrs.client)
+        if not player or not player.is_connected:
+            channel_id = await join_voice_channel(ctx.attrs.message, ctx.attrs.client)
 
-        query_info = await ctx.attrs.client.lavalink.auto_search_tracks(
-            ctx.options.query
+            if not channel_id:
+                return await ctx.attrs.message.respond(
+                    "Connect to a voice channel first!"
+                )
+
+        player = ctx.attrs.client.lavalink.player_manager.get(
+            ctx.attrs.message.guild_id
         )
 
-        if not query_info.tracks:
+        url_rx = re.compile(r"https?://(?:www\.)?.+")
+        if not url_rx.match(query):
+            query = f"ytsearch:{query}"
+
+        results = await player.node.get_tracks(query)
+
+        if not results or not results.tracks:
+            return await ctx.attrs.message.respond("Nothing found!")
+
+        for track in results.tracks:
+            track.extra.update({"request_channel_id": ctx.attrs.message.channel_id})
+
+        if results.load_type == "PLAYLIST_LOADED":
+            tracks = results.tracks
+
+            for track in tracks:
+                player.add(
+                    requester=ctx.attrs.message.author.id,
+                    track=track,
+                )
+
             await ctx.attrs.message.respond(
-                f"Nothing found from search query:\n`{ctx.options.query}`."
+                f"Added {len(tracks)} songs to queue from playlist {results.playlist_info.name}"
             )
         else:
-            try:
-                await ctx.attrs.client.lavalink.play(
-                    ctx.attrs.message.guild_id, query_info.tracks[0]
-                ).requester(ctx.attrs.message.author.id).queue()
+            player.add(
+                requester=ctx.attrs.message.author.id,
+                track=results.tracks[0],
+            )
+            await ctx.attrs.message.respond(
+                f"Added to queue: {results.tracks[0].title}"
+            )
 
-                node = await ctx.attrs.client.lavalink.get_guild_node(
-                    ctx.attrs.message.guild_id
-                )
-                node.set_data(
-                    {
-                        "request_channel_id": ctx.attrs.message.channel_id,
-                        "client": ctx.attrs.client,
-                    }
-                )
-
-                await ctx.attrs.message.respond(
-                    f"Added to queue: {query_info.tracks[0].info.title}"
-                )
-            except lavasnek_rs.NoSessionPresent:
-                await ctx.attrs.message.respond("I'm not connected to a voice channel!")
+        if not player.is_playing:
+            await player.play()
 
 
-@group.command()
+@group.add_option("action", default="show")
+@group.command("queue")
 class Queue(command.BaseCommand):
     __help__ = "Queue stuff"
 
-    def __init__(self):
-        super().__init__(name="queue")
-
-        self.add_option("action", default="show")
-
     async def show_queue(self, client, message):
-        node = await client.lavalink.get_guild_node(message.guild_id)
+        player = client.lavalink.player_manager.get(message.guild_id)
 
-        if node:
-            if node.queue:
+        if isinstance(player, lavalink.DefaultPlayer):
+            if player.queue:
                 queuestr = []
+                queue = []
+                if player.current:
+                    queue.append(player.current)
+                queue.extend(player.queue)
 
-                for idx, track_queue in enumerate(node.queue):
-                    track = track_queue.track
+                for idx, track in enumerate(queue):
                     tracknum = idx + 1
 
                     if client.config["enableCaching"]:
-                        username = client.caches.get(
-                            f"{track_queue.requester}_username"
-                        )
+                        username = client.caches.get(f"{track.requester}_username")
 
                         if username:
                             username = username.data
                         else:
                             member = await client.rest.fetch_member(
-                                message.guild_id, track_queue.requester
+                                message.guild_id, track.requester
                             )
                             username = f"{member.username}#{member.discriminator}"
-                            cdat = cache.Cache(
-                                f"{track_queue.requester}_username", username
-                            )
+                            cdat = cache.Cache(f"{track.requester}_username", username)
                             client.caches.store(cdat)
                     else:
                         member = await client.rest.fetch_member(
-                            message.guild_id, track_queue.requester
+                            message.guild_id, track.requester
                         )
                         username = f"{member.username}#{member.discriminator}"
 
-                    trackstr = f"{tracknum}). [{track.info.title}]({track.info.uri})"
+                    trackstr = f"{tracknum}). [{track.title}]({track.uri})"
                     trackstr += f" (Requester: {username})"
 
                     if tracknum == 1:
                         trackstr += " (Now playing)"
 
                     if tracknum > 10:
-                        queuestr.append(f"{len(node.queue) - 10}+")
+                        queuestr.append(f"{len(player.queue) - 10}+")
                         break
 
                     queuestr.append(trackstr)
@@ -296,14 +306,11 @@ class Queue(command.BaseCommand):
                 await message.respond("Queue is empty!")
 
     async def clear_queue(self, client, message):
-        await client.lavalink.stop(message.guild_id)
-        node = await client.lavalink.get_guild_node(message.guild_id)
+        player = client.lavalink.player_manager.get(message.guild_id)
 
-        if node:
-            node.now_playing = None
-            node.queue = []
-
-            await client.lavalink.set_guild_node(message.guild_id, node)
+        if player.queue:
+            await player.stop()
+            player.queue = []
             await message.respond("Queue cleared!")
         else:
             await message.respond("Queue is empty!")
@@ -319,14 +326,10 @@ class Queue(command.BaseCommand):
             await ctx.attrs.message.respond(f"Invalid action: `{action}`")
 
 
-@group.command()
+@group.add_option("keywords", modifier=OptionModifier.ConsumeRest)
+@group.command("lyrics")
 class Lyrics(command.BaseCommand):
     __help__ = "Search for lyrics from Genius.com"
-
-    def __init__(self):
-        super().__init__(name="lyrics")
-
-        self.add_option("keywords", modifier=OptionModifier.ConsumeRest)
 
     async def error_lyrics(self, ctx):
         if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
