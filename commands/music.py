@@ -1,5 +1,3 @@
-import ctypes
-import ctypes
 import os
 import re
 
@@ -7,6 +5,7 @@ import cmdtools
 import hikari
 import lavalink
 from cmdtools.callback.option import OptionModifier
+from cmdtools.ext.command import Group
 from lyricsgenius import Genius
 
 from lib import cache, command
@@ -248,6 +247,7 @@ class Play(command.BaseCommand):
 @group.command("queue")
 class Queue(command.BaseCommand):
     __help__ = "Queue stuff"
+    _s = Group("subcmd")
 
     async def show_queue(self, client, message):
         player = client.lavalink.player_manager.get(message.guild_id)
@@ -315,6 +315,23 @@ class Queue(command.BaseCommand):
         else:
             await message.respond("Queue is empty!")
 
+    @_s.add_option("num", type=int)
+    @_s.command("remove")
+    async def remove(ctx):
+        player = ctx.attrs.client.lavalink.player_manager.get(
+            ctx.attrs.message.guild_id
+        )
+
+        if isinstance(player, lavalink.DefaultPlayer):
+            num = ctx.options.num - 2
+
+            if num < len(player.queue):
+                track = player.queue[num]
+                del player.queue[num]
+                await ctx.attrs.message.respond(f"Removed from queue: {track.title}")
+            else:
+                await ctx.attrs.message.respond(f"Index {ctx.options.num} is empty!")
+
     async def queue(self, ctx):
         action = ctx.options.action.lower()
 
@@ -323,6 +340,14 @@ class Queue(command.BaseCommand):
         elif action == "clear":
             await self.clear_queue(ctx.attrs.client, ctx.attrs.message)
         else:
+            cmd = cmdtools.Cmd(" ".join(ctx.command.args), prefix="")
+
+            if self._s.has_command(cmd.name):
+                return await self._s.run(
+                    cmd,
+                    attrs={"message": ctx.attrs.message, "client": ctx.attrs.client},
+                )
+
             await ctx.attrs.message.respond(f"Invalid action: `{action}`")
 
 
