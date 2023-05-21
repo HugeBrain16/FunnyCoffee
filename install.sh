@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # experimental install script for FunnyCoffee discord bot
 # only works on linux, i guess...
 
@@ -89,33 +89,6 @@ if [ ! $? -eq 0 ]; then
     exit 1
 fi
 
-echo "checking lavasnek_rs install..."
-python3 -m pip show lavasnek_rs
-
-if [ ! $? -eq 0 ]; then
-    echo "lavasnek_rs is not installed, building lavasnek_rs..."
-
-    if [ ! -d "$LAVASNEK_ROOT" ]; then
-        git clone https://github.com/vicky5124/lavasnek_rs -b master $LAVASNEK_ROOT
-
-        if [ ! $? -eq 0 ]; then
-            echo "Could not clone lavasnek_rs repository!"
-            exit 1
-        fi
-    fi
-
-    python3 -m pip install $LAVASNEK_ROOT/. --user
-
-    if [ ! $? -eq 0 ]; then
-        echo "failed to build lavasnek_rs!"
-        exit 1
-    fi
-
-    echo "Done!"
-else
-    echo "lavasnek_rs OK!"
-fi
-
 echo "installing dependencies for FunnyCoffee..."
 python3 -m pip install -r $FUNNYCOFFEE_ROOT/requirements.txt
 
@@ -140,7 +113,7 @@ fi
 
 if [ ! -f "$(pwd)/Lavalink.jar" ]; then
     echo "Lavalink server launcher not found, downloading Lavalink server launcher..."
-    curl -L https://github.com/freyacodes/Lavalink/releases/download/3.4/Lavalink.jar -o "$(pwd)/Lavalink.jar"
+    curl -L https://github.com/lavalink-devs/Lavalink/releases/download/3.7.5/Lavalink.jar -o "$(pwd)/Lavalink.jar"
 
     if [ ! $? -eq 0 ]; then
         echo "Could not download Lavalink server launcher."
@@ -157,26 +130,26 @@ echo "Done!"
 
 echo "Generating launcher script..."
 read -r -d '' LAUNCHER_SCRIPT <<- EOL
-#!/bin/bash
+#!/bin/sh
 # auto generated launcher from funnycoffee installer script.
 # execute the script in the current directory.
 
 on_exit () {
     echo "Shutting down Lavalink server..."
-    kill $LAVALINK_PID
+    kill \$LAVALINK_PID
 
-    if [ -f "$(pwd)/nohup.out" ]; then
-        LOG_SUFFIX=$(date +%Y%m%d%H%M%S)
-        LOGFILE_NAME="lavalink-$LOG_SUFFIX.log"
+    if [ -f "\$(pwd)/nohup.out" ]; then
+        LOG_SUFFIX=\$(date +%Y%m%d%H%M%S)
+        LOGFILE_NAME="lavalink-\$LOG_SUFFIX.log"
 
-        if [ ! -d "$(pwd)/logs" ]; then
-            mkdir -p "$(pwd)/logs"
+        if [ ! -d "\$\(pwd\)/logs" ]; then
+            mkdir -p "\$(pwd)/logs"
         fi
 
-        if [ -d "$(pwd)/logs" ]; then
-            cat nohup.out >"$(pwd)/logs/$LOGFILE_NAME"
+        if [ -d "\$(pwd)/logs" ]; then
+            cat nohup.out >"\$(pwd)/logs/\$LOGFILE_NAME"
         else
-            cat nohup.out >"$(pwd)/$LOGFILE_NAME"
+            cat nohup.out >"\$(pwd)/\$LOGFILE_NAME"
         fi
         rm nohup.out
     fi
@@ -186,7 +159,7 @@ on_exit () {
 trap "on_exit" INT
 
 nohup java -jar ./Lavalink.jar &
-LAVALINK_PID=$!
+LAVALINK_PID=\$!
 python3 -O ./bot.py
 EOL
 
