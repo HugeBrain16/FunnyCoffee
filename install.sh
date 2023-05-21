@@ -142,7 +142,7 @@ on_exit () {
         LOG_SUFFIX=\$(date +%Y%m%d%H%M%S)
         LOGFILE_NAME="lavalink-\$LOG_SUFFIX.log"
 
-        if [ ! -d "\$\(pwd\)/logs" ]; then
+        if [ ! -d "\$(pwd)/logs" ]; then
             mkdir -p "\$(pwd)/logs"
         fi
 
