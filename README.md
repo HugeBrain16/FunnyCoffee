@@ -23,7 +23,7 @@ git clone -b master https://github.com/HugeBrain16/FunnyCoffee
 #### Using pip
 
 ```sh
-pip install -r requirements.txt --pre -U
+pip install -r requirements.txt
 ```
 
 #### Using poetry
