@@ -79,6 +79,9 @@ class LavalinkEventHandler:
 
 class FunnyCoffee(hikari.GatewayBot):
     def __init__(self, token: str):
+        self.loop = asyncio.get_event_loop()
+        self.start_time = datetime.datetime.utcnow()
+        self.commands = []
         self._config_fallback = utils.load_config()
         self.webapp = flask.Flask(
             "FunnyCoffee",
@@ -142,21 +145,20 @@ class FunnyCoffee(hikari.GatewayBot):
         await self.lavalink.voice_update_handler(data)
 
     async def on_ready(self, event: hikari.ShardReadyEvent):
-        lvport = 2333
+        lvport = "2333"
         _lvport = os.getenv("LAVALINK_PORT", lvport)
 
-        if isinstance(_lvport, str):
-            if _lvport.strip().isdigit():
-                lvport = int(_lvport)
-            else:
-                logging.warn(
-                    f"Environment 'LAVALINK_PORT' with value of '{_lvport}' is not a digit string, falling back to default value: {lvport}"
-                )
+        if _lvport.strip().isdigit():
+            lvport = _lvport
+        else:
+            logging.warn(
+                f"Environment variable 'LAVALINK_PORT' with value of '{_lvport}' is not a digit, falling back to default value: {lvport}"
+            )
 
         lvclient = lavalink.Client(event.my_user.id)
         lvclient.add_node(
             host=os.getenv("LAVALINK_HOSTNAME", "127.0.0.1"),
-            port=lvport,
+            port=int(lvport),
             password=os.getenv("LAVALINK_PASSWORD", "youshallnotpass"),
             region="us",
         )
@@ -191,25 +193,22 @@ class FunnyCoffee(hikari.GatewayBot):
                         update_nameservers = True
                 else:
                     self.mongo_client = client
-            else:
-                if self.mongo_client is None:
-                    logging.warning(
-                        "Couldn't connect to mongodb database, some features may be unavailable."
-                    )
-                else:
-                    logging.info("Connected to mongodb database!")
 
-    async def on_starting(self, event: hikari.StartingEvent):
+            if self.mongo_client is None:
+                logging.warning(
+                    "Couldn't connect to mongodb database, some features may be unavailable."
+                )
+            else:
+                logging.info("Connected to mongodb database!")
+
+    async def on_starting(self, _: hikari.StartingEvent):
         logging.info(f"Starting FunnyCoffee version v{meta.Version(0)}...")
 
-    async def on_stopping(self, event: hikari.StoppingEvent):
+    async def on_stopping(self, _: hikari.StoppingEvent):
         if self.mongo_client:
             self.mongo_client.close()
 
-    async def on_started(self, event: hikari.StartedEvent):
-        self.loop = asyncio.get_event_loop()
-        self.start_time = datetime.datetime.utcnow()
-        self.commands = []
+    async def on_started(self, _: hikari.StartedEvent):
         loadcmdmsg = []
         for command in utils.get_commands():
             cmd = utils.load_command(command)
@@ -262,8 +261,8 @@ class FunnyCoffee(hikari.GatewayBot):
                     flask.session["admin"] = True
                     flask.session.permanent = True
                     return flask.redirect(flask.url_for("dashboard"))
-                else:
-                    return flask.render_template("login.html", wrong_password=True)
+
+                return flask.render_template("login.html", wrong_password=True)
 
             return flask.render_template("login.html")
 
@@ -287,7 +286,7 @@ class FunnyCoffee(hikari.GatewayBot):
                         self.config["logging"][logconfkey] = False
 
                 if "writeToFile" in flask.request.form:
-                    with open("config.json", "w") as file:
+                    with open("config.json", "w", encoding="UTF-8") as file:
                         file.write(utils.pjson(self.config))
 
                 for command_index, command in enumerate(self.commands):
