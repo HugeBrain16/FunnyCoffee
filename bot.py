@@ -213,7 +213,7 @@ class FunnyCoffee(hikari.GatewayBot):
         for command in utils.get_commands():
             cmd = utils.load_command(command)
 
-            if not hasattr(cmd, "PREFIX"):
+            if not hasattr(cmd, "PREFIX") and cmd is not None:
                 warnmsg = f"The command module has been found, but no prefix is defined: {command}"
                 warnmsg += (
                     f"\n  The module contains {len(cmd.group.commands)} command(s)"
