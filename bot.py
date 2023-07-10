@@ -116,37 +116,6 @@ class FunnyCoffee(hikari.GatewayBot):
         except json.decoder.JSONDecodeError:
             return self._config_fallback
 
-    async def update_presence_task(self):
-        while self.is_alive:
-            presences = []
-
-            presences.append(
-                self.update_presence(
-                    status=hikari.Status.IDLE,
-                    idle_since=datetime.datetime.now(),
-                    activity=hikari.Activity(
-                        name="the hit game Among Us", type=hikari.ActivityType.PLAYING
-                    ),
-                )
-            )
-
-            general_cmd = utils.load_command("general")
-            presences.append(
-                self.update_presence(
-                    status=hikari.Status.IDLE,
-                    idle_since=datetime.datetime.now(),
-                    activity=hikari.Activity(
-                        name=f"{general_cmd.PREFIX}help"
-                        if hasattr(general_cmd, "PREFIX")
-                        else "your mom",
-                        type=hikari.ActivityType.WATCHING,
-                    ),
-                )
-            )
-            for presence in presences:
-                await presence
-                await asyncio.sleep(60 * 5)
-
     async def voice_server_update(self, event: hikari.VoiceServerUpdateEvent):
         data = {
             "t": "VOICE_SERVER_UPDATE",
@@ -417,10 +386,21 @@ class FunnyCoffee(hikari.GatewayBot):
         run_webapp = functools.partial(self.webapp.run, **config)
         self.loop.run_in_executor(None, run_webapp)
 
-        self.loop.create_task(self.update_presence_task())
         self.loop.create_task(self.caches.update())
         self.loop.create_task(cache.update_cachedir(".cache"))
         self.loop.create_task(libcommand.update_cooldown(self.commands))
+
+        general_cmd = utils.load_command("general")
+        await self.update_presence(
+            status=hikari.Status.IDLE,
+            idle_since=datetime.datetime.now(),
+            activity=hikari.Activity(
+                name=f"{general_cmd.PREFIX}help"
+                if hasattr(general_cmd, "PREFIX")
+                else None,
+                type=hikari.ActivityType.WATCHING,
+            ),
+        )
 
     async def on_message(self, event: hikari.GuildMessageCreateEvent):
         if event.is_human:
