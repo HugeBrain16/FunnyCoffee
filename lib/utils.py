@@ -105,14 +105,16 @@ def get_mentions_ids(msg):
     return re.findall("<@(?P<user>\d+)>|<#(?P<channel>\d+)>", msg)
 
 
-def fsec(x):
-    if (x / 60) < 1:
-        return f"{x} second" + "s" if x > 1 else ""
-    elif (x / 60) >= 1 and (x / 3600) < 1:
-        return f"{int(x/60)} minute" + "s" if int(x / 60) > 1 else ""
-    elif (x / 3600) >= 1 and (x / 86400) < 1:
-        return f"{int(x/3600)} hour" + "s" if int(x / 3600) > 1 else ""
-    elif (x / 86400) >= 1 and (x / 2628002.88) < 1:
-        return f"{int(x/86400)} day" + "s" if int(x / 86400) > 1 else ""
-    elif (x / 2628002.88) >= 1:
-        return f"{int(x/2628002.88)} month" + "s" if int(x / 2628002.88) > 1 else ""
+def ftime(x):
+    units = [(86400, "day"), (3600, "hour"), (60, "minute"), (1, "second")]
+
+    parts = []
+    for unit, label in units:
+        if x >= unit:
+            value = int(x / unit)
+            x %= unit
+            if value > 1:
+                label += "s"
+            parts.append(f"{value} {label}")
+
+    return ", ".join(parts) if parts else "0 seconds"

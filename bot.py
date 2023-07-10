@@ -387,7 +387,6 @@ class FunnyCoffee(hikari.GatewayBot):
 
         self.loop.create_task(self.caches.update())
         self.loop.create_task(cache.update_cachedir(".cache"))
-        self.loop.create_task(libcommand.update_cooldown(self.commands))
 
         general_cmd = utils.load_command("general")
         await self.update_presence(
