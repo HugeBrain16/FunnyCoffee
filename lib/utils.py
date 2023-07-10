@@ -103,3 +103,16 @@ def load_config():
 
 def get_mentions_ids(msg):
     return re.findall("<@(?P<user>\d+)>|<#(?P<channel>\d+)>", msg)
+
+
+def fsec(x):
+    if (x / 60) < 1:
+        return f"{x} second" + "s" if x > 1 else ""
+    elif (x / 60) >= 1 and (x / 3600) < 1:
+        return f"{int(x/60)} minute" + "s" if int(x / 60) > 1 else ""
+    elif (x / 3600) >= 1 and (x / 86400) < 1:
+        return f"{int(x/3600)} hour" + "s" if int(x / 3600) > 1 else ""
+    elif (x / 86400) >= 1 and (x / 2628002.88) < 1:
+        return f"{int(x/86400)} day" + "s" if int(x / 86400) > 1 else ""
+    elif (x / 2628002.88) >= 1:
+        return f"{int(x/2628002.88)} month" + "s" if int(x / 2628002.88) > 1 else ""
