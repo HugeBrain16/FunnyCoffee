@@ -388,7 +388,7 @@ class Beg(command.BaseCommand):
 
     def __init__(self):
         super().__init__(name="beg")
-        self._cooldown = 30
+        self._cooldown = 60
         self._cooldown_callback = Callback(self.cd_beg)
 
     async def cd_beg(self, ctx):
