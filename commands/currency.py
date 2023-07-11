@@ -245,7 +245,7 @@ class Inventory(command.BaseCommand):
             for item in pages[ctx.options.page - 1]:
                 desc = f"{item['desc']}\n\n"
                 desc += f"type: `{item['type'].name}`\n"
-                desc += f"total value: **{item['value'] * data['inventory'][item['id']]}**\n"
+                desc += f"total value: **{item['value'] * data['inventory'][item['id']]:,}**\n"
                 desc += f"id: `{item['id']}`\n"
                 embed.add_field(
                     name=f"{item['emoji'] if item['emoji'] else ''} {item['name']} x{data['inventory'][item['id']]}",
@@ -292,7 +292,7 @@ class Shop(command.BaseCommand):
         for item in pages[ctx.options.page - 1]:
             desc = f"{item['desc']}\n\n"
             desc += f"type: `{item['type'].name}`\n"
-            desc += f"price: **{item['value']}**\n"
+            desc += f"price: **{item['value']:,}**\n"
             desc += f"id: `{item['id']}`\n"
             embed.add_field(
                 name=f"{item['emoji']} {item['name']}"
@@ -316,7 +316,7 @@ class Balance(command.BaseCommand):
         if data:
             embed = hikari.Embed()
             embed.title = f"{ctx.attrs.message.author.username}'s balance"
-            embed.description = f":coin: **{data.get('balance', 0)}** coins."
+            embed.description = f":coin: **{data.get('balance', 0):,}** coins."
             embed.color = 0xFFFF00
 
             await ctx.attrs.message.respond(embed=embed, reply=True)
@@ -411,7 +411,7 @@ class Beg(command.BaseCommand):
             embed.color = 0x00FF00
             if lootget != 3:
                 gem = random.randint(5, 30)
-                embed.description = f"Someone gave you :coin: **{gem}** coins"
+                embed.description = f"Someone gave you :coin: **{gem:,}** coins"
                 db["currency"].update_one(filter, {"$inc": {"balance": gem}})
             else:
                 embed.description = f"Someone gave you a **:cookie: Cookie**"
@@ -483,7 +483,7 @@ class GiveCoin(command.BaseCommand):
                     {"userid": user.id}, {"$inc": {"balance": ctx.options.coin}}
                 )
                 await msg.edit(
-                    f"You gave :coin: **{ctx.options.coin}** coins to **{user.username}**"
+                    f"You gave :coin: **{ctx.options.coin:,}** coins to **{user.username}**"
                 )
             else:
                 return await msg.edit(
