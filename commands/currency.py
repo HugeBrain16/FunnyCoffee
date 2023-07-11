@@ -115,7 +115,7 @@ class Buy(command.BaseCommand):
             if data.get("balance", 0) < total_price:
                 return await msg.edit("Not enough coins")
 
-            db["currency"].update_one(filter, {"$inc": {"balance": -total_price}})
+            data["balance"] -= total_price
             data["inventory"][item["id"]] += ctx.options.qty
             db["currency"].update_one(filter, {"$set": data})
             await msg.edit(
