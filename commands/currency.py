@@ -50,7 +50,8 @@ class Group(command.BaseGroup):
             ):
                 if attrs["client"].mongo_client is None:
                     return await attrs["message"].respond(
-                        "this feature is not available"
+                        "this feature is not available",
+                        reply=True,
                     )
 
                 return await super().run(command, attrs=attrs)
@@ -89,10 +90,12 @@ class Buy(command.BaseCommand):
     async def error_buy(self, ctx):
         if isinstance(ctx.error, cmdtools.NotEnoughArgumentError):
             if ctx.error.option == "id":
-                await ctx.attrs.message.respond("Specify the item id you want to buy")
+                await ctx.attrs.message.respond(
+                    "Specify the item id you want to buy", reply=True
+                )
         elif isinstance(ctx.error, cmdtools.ConversionError):
             if ctx.error.option == "qty":
-                await ctx.attrs.message.respond("value must be digits!")
+                await ctx.attrs.message.respond("value must be digits!", reply=True)
         else:
             raise ctx.error
 
@@ -141,7 +144,9 @@ class Give(command.BaseCommand):
                     reply=True,
                 )
             elif ctx.error.option == "id":
-                await ctx.attrs.message.respond("Specify the item id you want to give")
+                await ctx.attrs.message.respond(
+                    "Specify the item id you want to give", reply=True
+                )
         elif isinstance(ctx.error, cmdtools.ConversionError):
             if ctx.error.option == "qty":
                 await ctx.attrs.message.respond(
@@ -264,7 +269,7 @@ class Shop(command.BaseCommand):
     __help__ = "item shop"
 
     async def shop(self, ctx):
-        msg = await ctx.attrs.message.respond("Loading item shop...")
+        msg = await ctx.attrs.message.respond("Loading item shop...", reply=True)
 
         pages = []
         c_page = []
@@ -344,11 +349,14 @@ class Dice(command.BaseCommand):
         if data:
             if ctx.options.bet < 1:
                 return await ctx.attrs.message.respond(
-                    "You must place a bet at least 1 coin"
+                    "You must place a bet at least 1 coin",
+                    reply=True,
                 )
 
             if data.get("balance", 0) < ctx.options.bet:
-                return await ctx.attrs.message.respond("You don't have enough coins")
+                return await ctx.attrs.message.respond(
+                    "You don't have enough coins", reply=True
+                )
 
             msg = await ctx.attrs.message.respond("Rolling dice...", reply=True)
             ud = random.randint(1, 6) + random.randint(1, 6)
@@ -403,7 +411,7 @@ class Beg(command.BaseCommand):
         data = db["currency"].find_one(filter)
 
         if data:
-            msg = await ctx.attrs.message.respond("Begging...")
+            msg = await ctx.attrs.message.respond("Begging...", reply=True)
             lootget = random.randint(1, 5)
 
             embed = hikari.Embed()
@@ -438,7 +446,8 @@ class GiveCoin(command.BaseCommand):
                 )
             elif ctx.error.option == "coin":
                 await ctx.attrs.message.respond(
-                    "Specify the amount of coins you want to give"
+                    "Specify the amount of coins you want to give",
+                    reply=True,
                 )
         elif isinstance(ctx.error, cmdtools.ConversionError):
             if ctx.error.option == "coin":
