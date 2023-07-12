@@ -70,6 +70,19 @@ def get_commands() -> List[str]:
     ]
 
 
+def get_commands_cooldowns(commands):
+    data = {}
+
+    for cmd in commands:
+        group = cmd.group.name.lower()
+        data[group] = {}
+
+        for cd in cmd.group.commands:
+            data[group][cd.name] = cd._cooldowns
+
+    return data
+
+
 def getin(prompt: str, empty_message: str = None):
     res = input(prompt)
 
