@@ -1,4 +1,5 @@
 import random
+from datetime import timedelta
 from enum import Enum
 
 import cmdtools
@@ -36,6 +37,58 @@ ITEMS = [
         "type": ItemType.COLLECTABLE,
         "value": 999999,
         "emoji": ":gem:",
+    },
+]
+
+
+JOBS = [
+    {
+        "id": "beggar",
+        "name": "Beggar",
+        "level": 0,
+        "salary": [0, 0],
+        "time": 0,
+        "requirement": None,
+    },
+    {
+        "id": "garbage_man",
+        "name": "Garbage Man",
+        "level": 0,
+        "salary": [50, 100],
+        "time": 10,
+        "requirement": None,
+    },
+    {
+        "id": "lumberjack",
+        "name": "Lumberjack",
+        "level": 0,
+        "salary": [80, 100],
+        "time": 15,
+        "requirement": "axe",
+    },
+    {
+        "id": "freelancer",
+        "name": "Freelancer",
+        "level": 1,
+        "salary": [100, 180],
+        "time": 30,
+        "requirement": "laptop",
+    },
+    {
+        "id": "taxi_driver",
+        "name": "Taxi Driver",
+        "level": 1,
+        "salary": [160, 200],
+        "time": 50,
+        "requirement": "taxi",
+    },
+    {
+        "id": "mechanic",
+        "name": "Mechanic",
+        "level": 2,
+        "salary": [200, 210],
+        "time": 50,
+        "requirement": "wrench",
     },
 ]
 
@@ -501,3 +554,35 @@ class GiveCoin(command.BaseCommand):
         else:
             setup_user(db, filter["userid"])
             await self.givecoin(ctx)
+
+
+@group.command("daily")
+class Daily(command.BaseCommand):
+    def __init__(self):
+        super().__init__(name="daily")
+        self._cooldown = timedelta(days=1).seconds
+        self._cooldown_callback = Callback(self.cd_daily)
+
+    async def cd_daily(self, ctx):
+        await ctx.attrs.message.respond(
+            f"You can do this again in {(self._cooldown_gettr(ctx.attrs.message.author.id))}",
+            reply=True,
+        )
+
+    async def daily(self, ctx):
+        db = ctx.attrs.client.mongo_client["funnycoffee"]
+        filter = {"userid": ctx.attrs.message.author.id}
+        data = db["currency"].find_one(filter)
+
+        if data:
+            msg = await ctx.attrs.message.respond("Claiming...", reply=True)
+            rng = random.randint(400, 500)
+            db["currency"].update_one(filter, {"$inc": {"balance": rng}})
+            embed = hikari.Embed()
+            embed.title = "Daily Reward"
+            embed.color = 0xFFFF00
+            embed.description = f":coin: **+{rng} coins**"
+            await msg.edit(content="", embed=embed)
+        else:
+            setup_user(db, filter["userid"])
+            await self.daily(ctx)
