@@ -65,9 +65,22 @@ def load_command(name: str):
 def get_commands() -> List[str]:
     """get command names from library"""
     return [
-        file.rsplit(os.sep, 1)[1].rstrip(".py")
+        file.rsplit(os.sep, 1)[1].rsplit(".py", 1)[0]
         for file in glob(os.path.join("commands", "*.py"))
     ]
+
+
+def get_commands_cooldowns(commands):
+    data = {}
+
+    for cmd in commands:
+        group = cmd.group.name.lower()
+        data[group] = {}
+
+        for cd in cmd.group.commands:
+            data[group][cd.name] = cd._cooldowns
+
+    return data
 
 
 def getin(prompt: str, empty_message: str = None):
@@ -103,3 +116,18 @@ def load_config():
 
 def get_mentions_ids(msg):
     return re.findall("<@(?P<user>\d+)>|<#(?P<channel>\d+)>", msg)
+
+
+def ftime(x):
+    units = [(86400, "day"), (3600, "hour"), (60, "minute"), (1, "second")]
+
+    parts = []
+    for unit, label in units:
+        if x >= unit:
+            value = int(x / unit)
+            x %= unit
+            if value > 1:
+                label += "s"
+            parts.append(f"{value} {label}")
+
+    return ", ".join(parts) if parts else "0 seconds"

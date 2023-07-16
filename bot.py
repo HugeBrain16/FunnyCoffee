@@ -205,6 +205,17 @@ class FunnyCoffee(hikari.GatewayBot):
         logging.info(f"Starting FunnyCoffee version v{meta.Version(0)}...")
 
     async def on_stopping(self, _: hikari.StoppingEvent):
+        if self.config["enableCaching"]:
+            logging.info("Saving commands' cooldowns...")
+            if cache.has_cache(".cache", "cooldowns"):
+                cache.remove(".cache", "cooldowns")
+            cache.store(
+                ".cache",
+                cache.Cache(
+                    "cooldowns", utils.get_commands_cooldowns(self.commands), 0
+                ),
+            )
+            logging.info("Commands' cooldowns saved.")
         if self.mongo_client:
             self.mongo_client.close()
 
@@ -213,7 +224,7 @@ class FunnyCoffee(hikari.GatewayBot):
         for command in utils.get_commands():
             cmd = utils.load_command(command)
 
-            if not hasattr(cmd, "PREFIX"):
+            if not hasattr(cmd, "PREFIX") and cmd is not None:
                 warnmsg = f"The command module has been found, but no prefix is defined: {command}"
                 warnmsg += (
                     f"\n  The module contains {len(cmd.group.commands)} command(s)"
@@ -225,6 +236,26 @@ class FunnyCoffee(hikari.GatewayBot):
                 loadcmdmsg.append(f"  - {command}")
         loadcmdmsg.append(f"loaded {len(loadcmdmsg)} Command module(s):")
         logging.info("\n".join(loadcmdmsg[::-1]))
+
+        if self.config["enableCaching"]:
+            logging.info("Loading commands' cooldowns...")
+            cooldowns = cache.get(".cache", "cooldowns")
+
+            if cooldowns:
+                for cmd in self.commands:
+                    group = cmd.group.name.lower()
+                    for cd in cmd.group.commands:
+                        try:
+                            cd._cooldowns = cooldowns.data[group][cd.name]
+                        except KeyError:
+                            continue
+
+                logging.info("Commands' cooldowns loaded.")
+            else:
+                logging.warning("Failed to load commands' cooldowns cache")
+                logging.info(
+                    "Commands' cooldowns will be loaded next time you start the bot"
+                )
 
         config = {"load_dotenv": False, "use_reloader": False}
         config.update(self.config["webapp"])
@@ -387,7 +418,6 @@ class FunnyCoffee(hikari.GatewayBot):
 
         self.loop.create_task(self.caches.update())
         self.loop.create_task(cache.update_cachedir(".cache"))
-        self.loop.create_task(libcommand.update_cooldown(self.commands))
 
         general_cmd = utils.load_command("general")
         await self.update_presence(
